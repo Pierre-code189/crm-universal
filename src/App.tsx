@@ -15,6 +15,7 @@ import { DynamicTable } from './ui/dynamic/DynamicTable';
 import { DynamicForm } from './ui/dynamic/DynamicForm';
 import { Modal } from './ui/components/Modal';
 import { Dashboard } from './ui/dynamic/Dashboard'; // Importación correcta del Dashboard
+import { WhatsAppConnector } from './ui/dynamic/WhatsAppConnector';
 
 import './App.css';
 
@@ -146,6 +147,15 @@ const PanelCRM = () => {
       {/* PESTAÑAS */}
       <div className="crm-tabs">
         {/* Pestaña Fija: Dashboard */}
+
+        <button
+          onClick={() => { setModuloActivo('whatsapp'); setVerPapelera(false); }}
+          className="crm-tab-btn"
+          style={{ backgroundColor: moduloActivo === 'whatsapp' ? tenant.themeColor : 'white', color: moduloActivo === 'whatsapp' ? 'white' : '#4b5563' }}
+        >
+          📱 WhatsApp Bot
+        </button>
+
         <button
           onClick={() => { setModuloActivo('dashboard'); setVerPapelera(false); }}
           className="crm-tab-btn"
@@ -212,6 +222,8 @@ const PanelCRM = () => {
       >
         {moduloActivo === 'dashboard' ? (
           <Dashboard tenant={tenant} repository={repository} />
+        ) : moduloActivo === 'whatsapp' ? (
+          <WhatsAppConnector />
         ) : (
           moduloActivo && tenant.modules[moduloActivo] && (
             <DynamicTable 
