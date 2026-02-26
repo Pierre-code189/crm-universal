@@ -1,0 +1,213 @@
+/* src/App.css */
+
+/* --- PANTALLA DE CARGA --- */
+.loading-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #f9fafb;
+  font-family: sans-serif;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* --- CONTENEDOR PRINCIPAL DEL CRM --- */
+.crm-container {
+  padding: clamp(10px, 5vw, 40px);
+  background-color: #f9fafb;
+  min-height: 100vh;
+  font-family: sans-serif;
+  box-sizing: border-box;
+}
+
+/* --- CABECERA PREMIUM (Mundo Cliente) --- */
+.crm-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  background-color: white;
+  padding: 15px 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  margin-bottom: 30px;
+  border: 1px solid #f3f4f6;
+  gap: 15px;
+}
+
+.crm-brand {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.crm-avatar {
+  width: 45px;
+  height: 45px;
+  border-radius: 10px;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.crm-title {
+  margin: 0;
+  font-size: clamp(1.2rem, 3vw, 1.4rem);
+  color: #1f2937;
+}
+
+.crm-subtitle {
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.crm-user-controls {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.crm-email {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.btn-logout-client {
+  padding: 8px 16px;
+  background-color: #fff1f2;
+  color: #e11d48;
+  border: 1px solid #fecdd3;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.btn-logout-client:hover {
+  background-color: #ffe4e6;
+}
+
+/* --- NAVEGACIÓN (Pestañas) --- */
+.crm-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 25px;
+}
+
+.crm-tab-btn {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  transition: all 0.2s;
+}
+
+/* --- BARRA DE ACCIONES (Toolbar) --- */
+.crm-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 15px;
+}
+
+.badge-db-connected {
+  padding: 8px 15px;
+  background-color: #d1fae5;
+  color: #065f46;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dot-green {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  background-color: #10b981;
+  border-radius: 50%;
+}
+
+.toolbar-actions {
+  display: flex;
+  gap: 10px;
+  flex-grow: 1;
+  justify-content: flex-end;
+}
+
+.btn-trash-toggle {
+  padding: 10px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.btn-new-record {
+  padding: 10px 20px;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: opacity 0.2s;
+}
+
+.btn-new-record:hover {
+  opacity: 0.9;
+}
+
+/* --- CONTENEDOR DE LA TABLA DINÁMICA --- */
+.table-wrapper {
+  background-color: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  overflow-x: auto;
+}
+
+/* Añadir al final de src/App.css */
+.toast-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 15px 25px;
+  border-radius: 8px;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  color: white;
+  font-weight: bold;
+  animation: slideIn 0.3s ease-out;
+}
+.toast-success { background-color: #059669; }
+.toast-error { background-color: #dc2626; }
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}

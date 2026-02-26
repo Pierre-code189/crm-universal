@@ -1,0 +1,21 @@
+// src/features/auth/ProtectedRoute.tsx
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAuth } from './AuthContext';
+import type { ReactNode } from 'react'; // 1. Importamos ReactNode
+
+// 2. Cambiamos JSX.Element por ReactNode
+export const ProtectedRoute = ({ children }: { children: ReactNode }) => {
+  const { user, isLoading } = useAuth();
+  const location = useLocation();
+
+  // MIENTRAS ESTÉ CARGANDO, NO HACEMOS NADA (Evita el salto al login)
+  if (isLoading) {
+    return null; 
+  }
+
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return children;
+};
