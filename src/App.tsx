@@ -48,6 +48,7 @@ const PanelCRM = () => {
     
     setDatosModulo([]); // Anti-fantasmas
     const esquemaActual = tenant.modules[moduloActivo];
+    if (!esquemaActual) return;
     const repo: any = repository;
     try {
       const data = await repo.getAll(esquemaActual.collectionName, verPapelera);
