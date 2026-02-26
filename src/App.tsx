@@ -15,7 +15,7 @@ import { DynamicTable } from './ui/dynamic/DynamicTable';
 import { DynamicForm } from './ui/dynamic/DynamicForm';
 import { Modal } from './ui/components/Modal';
 import { Dashboard } from './ui/dynamic/Dashboard'; // Importación correcta del Dashboard
-import { WhatsAppConnector } from './ui/dynamic/WhatsAppConnector';
+import WhatsAppConnector from './ui/dynamic/WhatsAppConnector';
 
 import './App.css';
 
