@@ -13,24 +13,22 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({ schema, initialData = 
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-    let finalValue: any = value;
+    
+    let valorLimpio: any = value;
 
-    // 🕵️‍♂️ BUSCAMOS EL CAMPO EN EL ESQUEMA PARA VER SI TIENE REGLAS ESPECIALES
-    const fieldConfig = schema.fields.find((f: any) => f.name === name);
-
-    // 🛡️ LÓGICA DE LIMPIEZA PARA EL TELÉFONO
-    // Si el campo se llama 'telefono' o tiene el patrón de 9 números:
-    if (name === 'telefono' || fieldConfig?.pattern === "^[0-9]{9}$") {
-      // replace(/\D/g, ''): Elimina cualquier cosa que NO sea un número
-      // .slice(0, 9): No permite escribir más de 9 dígitos
-      finalValue = value.replace(/\D/g, '').slice(0, 9);
+    // 🛡️ BARRERA ESTRICTA: Si el campo se llama 'telefono'
+    if (name === 'telefono') {
+      // 1. replace(/\D/g, ''): Destruye letras, espacios y símbolos al instante.
+      // 2. slice(0, 9): Corta el texto como una guillotina si pasa de 9 números.
+      valorLimpio = value.replace(/\D/g, '').slice(0, 9);
     } 
-    // Si el campo es numérico normal (como el precio)
+    // Si es un campo de precio o número normal
     else if (type === 'number') {
-      finalValue = value === '' ? '' : parseFloat(value);
+      valorLimpio = value === '' ? '' : parseFloat(value);
     }
     
-    setFormData({ ...formData, [name]: finalValue });
+    // Guardamos el valor purificado en el estado de React
+    setFormData({ ...formData, [name]: valorLimpio });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -77,7 +75,6 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({ schema, initialData = 
               name={field.name}
               value={formData[field.name] || ''}
               onChange={handleChange}
-              // 🛡️ Cambiamos 'name' por 'field.name' para que TS sepa de qué hablamos
               pattern={field.pattern}
               maxLength={field.name === 'telefono' ? 9 : undefined} 
               placeholder={field.placeholder || (field.type === 'number' ? 'Ej: 15.50' : `Ingrese ${field.label.toLowerCase()}`)}
