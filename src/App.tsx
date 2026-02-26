@@ -53,6 +53,7 @@ const PanelCRM = () => {
       const data = await repo.getAll(esquemaActual.collectionName, verPapelera);
       setDatosModulo(data);
     } catch (error) {
+      console.error("🕵️‍♂️ EL VERDADERO ERROR AL CARGAR LA TABLA ES:", error);
       mostrarMensaje("Error al sincronizar datos", "error");
     }
   };
