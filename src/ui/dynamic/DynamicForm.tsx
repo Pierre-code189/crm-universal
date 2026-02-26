@@ -9,16 +9,28 @@ export interface DynamicFormProps {
 }
 
 export const DynamicForm: React.FC<DynamicFormProps> = ({ schema, initialData = {}, onSubmit, onCancel }) => {
-  // Iniciamos el estado con los datos a editar, o vacío si es nuevo
   const [formData, setFormData] = useState<any>(initialData);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
+    let finalValue: any = value;
+
+    // 🕵️‍♂️ BUSCAMOS EL CAMPO EN EL ESQUEMA PARA VER SI TIENE REGLAS ESPECIALES
+    const fieldConfig = schema.fields.find((f: any) => f.name === name);
+
+    // 🛡️ LÓGICA DE LIMPIEZA PARA EL TELÉFONO
+    // Si el campo se llama 'telefono' o tiene el patrón de 9 números:
+    if (name === 'telefono' || fieldConfig?.pattern === "^[0-9]{9}$") {
+      // replace(/\D/g, ''): Elimina cualquier cosa que NO sea un número
+      // .slice(0, 9): No permite escribir más de 9 dígitos
+      finalValue = value.replace(/\D/g, '').slice(0, 9);
+    } 
+    // Si el campo es numérico normal (como el precio)
+    else if (type === 'number') {
+      finalValue = value === '' ? '' : parseFloat(value);
+    }
     
-    // Si el campo es numérico, lo convertimos a número real para la base de datos
-    const parsedValue = type === 'number' ? parseFloat(value) : value;
-    
-    setFormData({ ...formData, [name]: parsedValue });
+    setFormData({ ...formData, [name]: finalValue });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -34,7 +46,6 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({ schema, initialData = 
             {field.label}
           </label>
           
-          {/* Si el JSON pide un AREA DE TEXTO GRANDE */}
           {field.type === 'textarea' ? (
             <textarea
               name={field.name}
@@ -45,8 +56,6 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({ schema, initialData = 
               required={field.required !== false}
             />
           ) 
-          
-          /* Si el JSON pide una LISTA DESPLEGABLE */
           : field.type === 'select' ? (
             <select
               name={field.name}
@@ -61,7 +70,6 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({ schema, initialData = 
               ))}
             </select>
           ) 
-          
           /* Si es TEXTO normal o NÚMERO */
           : (
             <input
@@ -69,8 +77,11 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({ schema, initialData = 
               name={field.name}
               value={formData[field.name] || ''}
               onChange={handleChange}
-              placeholder={field.type === 'number' ? 'Ej: 15.50' : `Ingrese ${field.label.toLowerCase()}`}
-              step={field.type === 'number' ? "0.1" : undefined} // Permite decimales
+              // 🛡️ Cambiamos 'name' por 'field.name' para que TS sepa de qué hablamos
+              pattern={field.pattern}
+              maxLength={field.name === 'telefono' ? 9 : undefined} 
+              placeholder={field.placeholder || (field.type === 'number' ? 'Ej: 15.50' : `Ingrese ${field.label.toLowerCase()}`)}
+              step={field.type === 'number' ? "0.1" : undefined}
               style={{ padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', color: 'black' }}
               required={field.required !== false}
             />
@@ -78,7 +89,6 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({ schema, initialData = 
         </div>
       ))}
       
-      {/* BOTONES DE ACCIÓN */}
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '15px' }}>
         <button type="button" onClick={onCancel} style={{ padding: '10px 15px', borderRadius: '6px', border: '1px solid #d1d5db', background: 'white', color: '#374151', cursor: 'pointer', fontWeight: 'bold' }}>
           Cancelar
