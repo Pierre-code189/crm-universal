@@ -5,7 +5,11 @@ import { masterDb } from '../../infrastructure/database/firebaseManager';
 import { useTenant } from '../../core/tenants/TenantContext';
 import { QRCodeSVG } from 'qrcode.react';
 
-export const WhatsAppConnector = () => {
+interface WhatsAppConnectorProps {
+  tenantId: string;
+}
+
+export const WhatsAppConnector: React.FC<WhatsAppConnectorProps> = ({ tenantId }) => {
   const { tenant } = useTenant();
   const [connectionData, setConnectionData] = useState<{ status: string; qr_code: string | null; } | null>(null);
 
@@ -13,7 +17,7 @@ export const WhatsAppConnector = () => {
     if (!tenant) return;
     
     // Escuchamos el documento maestro del cliente en tiempo real
-    const docRef = doc(masterDb, 'clientes_config', tenant.id);
+   const docRef = doc(masterDb, 'clientes_config', tenantId);
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();

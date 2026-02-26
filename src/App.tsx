@@ -223,7 +223,7 @@ const PanelCRM = () => {
         {moduloActivo === 'dashboard' ? (
           <Dashboard tenant={tenant} repository={repository} />
         ) : moduloActivo === 'whatsapp' ? (
-          <WhatsAppConnector />
+          <WhatsAppConnector tenantId={tenant.id} />
         ) : (
           moduloActivo && tenant.modules[moduloActivo] && (
             <DynamicTable 
