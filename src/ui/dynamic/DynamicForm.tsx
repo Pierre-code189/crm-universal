@@ -12,14 +12,15 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({ schema, initialData = 
   const [formData, setFormData] = useState<any>(initialData);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
+    // Forzamos el tipado a HTMLInputElement para poder leer la propiedad 'checked'
+    const target = e.target as HTMLInputElement; 
+    const { name, value, type, checked } = target;
     
-    let valorLimpio: any = value;
+    // 1. EVALUACIÓN INTELIGENTE: Si es checkbox saca 'checked', si no, saca 'value'
+    let valorLimpio: any = type === 'checkbox' ? checked : value;
 
     // 🛡️ BARRERA ESTRICTA: Si el campo se llama 'telefono'
     if (name === 'telefono') {
-      // 1. replace(/\D/g, ''): Destruye letras, espacios y símbolos al instante.
-      // 2. slice(0, 9): Corta el texto como una guillotina si pasa de 9 números.
       valorLimpio = value.replace(/\D/g, '').slice(0, 9);
     } 
     // Si es un campo de precio o número normal
@@ -68,6 +69,20 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({ schema, initialData = 
               ))}
             </select>
           ) 
+          /* 🚀 NUEVA SECCIÓN: Renderizado exclusivo para Checkboxes */
+          : field.type === 'checkbox' ? (
+            <div style={{ display: 'flex', alignItems: 'center', marginTop: '5px' }}>
+              <input
+                type="checkbox"
+                name={field.name}
+                // Los checkboxes usan 'checked' en lugar de 'value'
+                checked={!!formData[field.name]} 
+                onChange={handleChange}
+                style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: '#3b82f6' }}
+              />
+              <span style={{ marginLeft: '10px', fontSize: '0.85rem', color: '#6b7280' }}>Marcar para habilitar</span>
+            </div>
+          )
           /* Si es TEXTO normal o NÚMERO */
           : (
             <input
