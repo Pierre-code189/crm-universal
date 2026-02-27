@@ -36,11 +36,28 @@ export const DynamicTable: React.FC<DynamicTableProps> = ({ schema, data, onEdit
             <tr key={item.id || index} style={{ borderBottom: '1px solid #e5e7eb', backgroundColor: 'white' }}>
               {schema.fields.map((field: any) => (
                 <td key={field.name} style={{ padding: '12px 15px', fontSize: '0.9rem', color: '#1f2937' }}>
-                  {field.name.toLowerCase().includes('imagen') && item[field.name] ? (
+                  
+                  {/* 🛠️ SOLUCIÓN: Interceptamos los booleanos (checkbox) para que no se vuelvan invisibles */}
+                  {field.type === 'checkbox' ? (
+                    <span style={{
+                      padding: '4px 8px',
+                      borderRadius: '12px',
+                      fontSize: '0.8rem',
+                      fontWeight: 'bold',
+                      backgroundColor: item[field.name] ? '#d1fae5' : '#fee2e2',
+                      color: item[field.name] ? '#065f46' : '#991b1b'
+                    }}>
+                      {item[field.name] ? '✅ Sí' : '❌ No'}
+                    </span>
+                  ) 
+                  
+                  /* Lógica original para imágenes y texto normal */
+                  : field.name.toLowerCase().includes('imagen') && item[field.name] ? (
                     <img src={item[field.name]} alt="img" style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '6px' }} />
                   ) : (
                     item[field.name]
                   )}
+
                 </td>
               ))}
               
