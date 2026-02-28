@@ -303,3 +303,61 @@
     width: 100%;
   }
 }
+
+/* =========================================
+   🍔 MENÚ HAMBURGUESA Y HEADER MÓVIL
+   ========================================= */
+
+/* Por defecto (Computadoras), la hamburguesa NO existe */
+.btn-hamburger {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  color: #374151;
+  cursor: pointer;
+  padding: 0 5px;
+  transition: transform 0.2s;
+}
+
+/* Solo afecta a pantallas pequeñas (Celulares/Tablets) */
+@media screen and (max-width: 768px) {
+  .btn-hamburger {
+    display: block; /* Aparece la hamburguesa */
+  }
+
+  .desktop-only {
+    display: none !important; /* Escondemos el correo para ahorrar espacio */
+  }
+
+  /* Transformamos el contenedor de botones en un Dropdown */
+  .crm-tabs {
+    display: none; /* Oculto por defecto */
+    flex-direction: column;
+    background-color: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    gap: 8px;
+  }
+
+  /* Cuando React activa la clase, el menú cae con estilo */
+  .crm-tabs.menu-abierto {
+    display: flex;
+    animation: slideDown 0.3s ease-out forwards;
+  }
+
+  /* Los botones se estiran de lado a lado */
+  .crm-tab-btn {
+    width: 100%;
+    text-align: left;
+    padding: 12px 15px;
+    border-radius: 6px;
+  }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}

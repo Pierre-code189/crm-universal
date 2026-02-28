@@ -31,11 +31,20 @@ const PanelCRM = () => {
   
   const [mensaje, setMensaje] = useState<{texto: string, tipo: 'exito' | 'error'} | null>(null);
   const [registroAEliminar, setRegistroAEliminar] = useState<string | null>(null);
+  // 🍔 NUEVO: Estado para el menú móvil
+  const [menuMovilAbierto, setMenuMovilAbierto] = useState(false);
 
   // 🚀 NUEVOS ESTADOS DE UX AVANZADA
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [filtroHoy, setFiltroHoy] = useState(false);
+
+  // 🧠 NUEVO: Función que cambia el módulo y cierra el menú en celulares
+  const handleCambiarModulo = (modulo: string) => {
+    setModuloActivo(modulo);
+    setVerPapelera(false);
+    setMenuMovilAbierto(false); // Cierra la hamburguesa mágicamente
+  };
 
   useEffect(() => {
     // 🧹 Limpiamos selecciones y búsquedas al cambiar de pantalla
@@ -207,9 +216,18 @@ const PanelCRM = () => {
             <span className="crm-subtitle" style={{ color: tenant.themeColor }}>Panel Administrativo</span>
           </div>
         </div>
-        <div className="crm-user-controls">
-          <span className="crm-email">{user?.email}</span>
+        
+        {/* 🍔 ACTUALIZADO: Controles de Usuario y Hamburguesa */}
+        <div className="crm-user-controls" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span className="crm-email desktop-only">{user?.email}</span>
           <button onClick={logout} className="btn-logout-client">Salir</button>
+          
+          <button 
+            className="btn-hamburger" 
+            onClick={() => setMenuMovilAbierto(!menuMovilAbierto)}
+          >
+            {menuMovilAbierto ? '✖' : '☰'}
+          </button>
         </div>
       </div>
 
@@ -220,10 +238,10 @@ const PanelCRM = () => {
         </div>
       )}
 
-      {/* PESTAÑAS */}
-      <div className="crm-tabs">
+      {/* PESTAÑAS (Ahora controladas por la clase menu-abierto) */}
+      <div className={`crm-tabs ${menuMovilAbierto ? 'menu-abierto' : ''}`}>
         <button
-          onClick={() => { setModuloActivo('whatsapp'); setVerPapelera(false); }}
+          onClick={() => handleCambiarModulo('whatsapp')}
           className="crm-tab-btn"
           style={{ backgroundColor: moduloActivo === 'whatsapp' ? tenant.themeColor : 'white', color: moduloActivo === 'whatsapp' ? 'white' : '#4b5563' }}
         >
@@ -231,7 +249,7 @@ const PanelCRM = () => {
         </button>
 
         <button
-          onClick={() => { setModuloActivo('dashboard'); setVerPapelera(false); }}
+          onClick={() => handleCambiarModulo('dashboard')}
           className="crm-tab-btn"
           style={{ backgroundColor: moduloActivo === 'dashboard' ? tenant.themeColor : 'white', color: moduloActivo === 'dashboard' ? 'white' : '#4b5563' }}
         >
@@ -245,7 +263,7 @@ const PanelCRM = () => {
           return (
             <button
               key={key}
-              onClick={() => { setModuloActivo(key); setVerPapelera(false); }}
+              onClick={() => handleCambiarModulo(key)}
               className="crm-tab-btn"
               style={{ backgroundColor: isActive ? tenant.themeColor : 'white', color: isActive ? 'white' : '#4b5563' }}
             >
