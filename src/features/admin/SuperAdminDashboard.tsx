@@ -1,6 +1,6 @@
 // src/features/admin/SuperAdminDashboard.tsx
 import { useState, useEffect } from 'react';
-import { collection, getDocs, doc, updateDoc, setDoc } from 'firebase/firestore'; 
+import { collection, getDocs, doc, updateDoc, setDoc, query, where } from 'firebase/firestore';
 import { masterDb } from '../../infrastructure/database/firebaseManager';
 import { useAuth } from '../auth/AuthContext';
 import { invitarCliente } from '../auth/authService';
@@ -36,25 +36,48 @@ export const SuperAdminDashboard = () => {
   const cargarClientes = async () => {
     setCargando(true);
     try {
-      const snap = await getDocs(collection(masterDb, "clientes_config"));
+      // 🛡️ Filtramos desde el servidor para ahorrar lecturas
+      const q = query(collection(masterDb, "clientes_config"), where("estado", "!=", "Eliminado"));
+      const snap = await getDocs(q);
       const lista = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Cliente));
-      setClientes(lista.filter(c => c.estado !== 'Eliminado'));
-    } catch (e) { mostrarMensaje("Error al conectar", "error"); }
-    finally { setCargando(false); }
+      setClientes(lista);
+    } catch (e) { 
+      mostrarMensaje("Error al conectar con la base de datos", "error"); 
+      console.error(e);
+    } finally { 
+      setCargando(false); 
+    }
   };
 
   const handleEjecutarInvitacion = async (e: React.FormEvent) => {
     e.preventDefault();
-    mostrarMensaje("Registrando...", "exito");
+    mostrarMensaje("Verificando y registrando...", "exito");
+    
     try {
-      await setDoc(doc(masterDb, "clientes_config", inviteId), { email: inviteEmail, estado: "Activo", createdAt: new Date().toISOString() });
+      // 1. PRIMERO intentamos crear la cuenta de Auth (Operación riesgosa)
       const res = await invitarCliente(inviteEmail);
+      
       if (res.success) {
-        mostrarMensaje("¡Invitación enviada!", "exito");
-        setShowInviteModal(false); setInviteEmail(''); setInviteId('');
+        // 2. SOLO si Auth funciona, creamos el documento (Evita datos huérfanos)
+        // 3. El estado inicial debe ser "Pendiente"
+        await setDoc(doc(masterDb, "clientes_config", inviteId), { 
+          email: inviteEmail, 
+          estado: "Pendiente", // <-- Corregido
+          createdAt: new Date().toISOString() 
+        });
+        
+        mostrarMensaje("¡Invitación enviada con éxito!", "exito");
+        setShowInviteModal(false); 
+        setInviteEmail(''); 
+        setInviteId('');
         cargarClientes();
-      } else { mostrarMensaje("Error al enviar correo", "error"); }
-    } catch (err) { mostrarMensaje("Error al invitar", "error"); }
+      } else { 
+        mostrarMensaje(res.error || "Error al crear la cuenta de acceso", "error"); 
+      }
+    } catch (err) { 
+      mostrarMensaje("Error crítico al invitar", "error"); 
+      console.error(err);
+    }
   };
 
   const handleReiniciarAcceso = async (email: string) => {

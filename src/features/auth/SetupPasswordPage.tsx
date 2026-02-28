@@ -1,7 +1,7 @@
 // src/features/auth/SetupPasswordPage.tsx
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { verifyPasswordResetCode, confirmPasswordReset } from 'firebase/auth';
+import { verifyPasswordResetCode, confirmPasswordReset, signInWithEmailAndPassword } from 'firebase/auth';
 import { collection, query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
 import { masterAuth, masterDb } from '../../infrastructure/database/firebaseManager';
 
@@ -46,12 +46,14 @@ export const SetupPasswordPage = () => {
       // 2. Guardamos la nueva contraseña en Firebase Auth
       await confirmPasswordReset(masterAuth, oobCode, password);
 
-      // 3. ¡MAGIA! Buscamos a este cliente en tu Base de Datos Central y lo marcamos como Activo
+      // 🛠️ SOLUCIÓN: 2.5 Iniciamos sesión silenciosamente para ganar permisos en la BD
+      await signInWithEmailAndPassword(masterAuth, emailCliente, password);
+
+      // 3. ¡MAGIA! Buscamos a este cliente y lo marcamos como Activo (ahora sí tenemos permiso)
       const q = query(collection(masterDb, "clientes_config"), where("email", "==", emailCliente));
       const querySnapshot = await getDocs(q);
       
       if (!querySnapshot.empty) {
-        // Encontramos el documento del cliente, lo actualizamos
         const docId = querySnapshot.docs[0].id;
         await updateDoc(doc(masterDb, "clientes_config", docId), {
           estado: 'Activo'

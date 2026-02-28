@@ -21,7 +21,7 @@ export const LoginPage = () => {
       await login(email, password);
       
       // ¡EL ENRUTADOR INTELIGENTE!
-      if (email === 'giancordova9@gmail.com') {
+      if (email === import.meta.env.VITE_SUPER_ADMIN_EMAIL) {
         navigate('/superadmin', { replace: true }); // El jefe va al búnker
       } else {
         navigate('/', { replace: true }); // Los clientes van a su panel

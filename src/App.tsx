@@ -14,7 +14,7 @@ import { SetupPasswordPage } from './features/auth/SetupPasswordPage';
 import { DynamicTable } from './ui/dynamic/DynamicTable';
 import { DynamicForm } from './ui/dynamic/DynamicForm';
 import { Modal } from './ui/components/Modal';
-import { Dashboard } from './ui/dynamic/Dashboard'; // Importación correcta del Dashboard
+import { Dashboard } from './ui/dynamic/Dashboard'; 
 import WhatsAppConnector from './ui/dynamic/WhatsAppConnector';
 
 import './App.css';
@@ -23,7 +23,6 @@ const PanelCRM = () => {
   const { tenant, isLoading, repository } = useTenant();
   const { user, logout, isLoading: authLoading } = useAuth();
 
-  // Iniciamos por defecto en 'dashboard' (todo en minúscula)
   const [moduloActivo, setModuloActivo] = useState<string>('dashboard');
   const [datosModulo, setDatosModulo] = useState<any[]>([]);
   const [modalAbierto, setModalAbierto] = useState(false);
@@ -33,7 +32,16 @@ const PanelCRM = () => {
   const [mensaje, setMensaje] = useState<{texto: string, tipo: 'exito' | 'error'} | null>(null);
   const [registroAEliminar, setRegistroAEliminar] = useState<string | null>(null);
 
+  // 🚀 NUEVOS ESTADOS DE UX AVANZADA
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [filtroHoy, setFiltroHoy] = useState(false);
+
   useEffect(() => {
+    // 🧹 Limpiamos selecciones y búsquedas al cambiar de pantalla
+    setSearchTerm('');
+    setSelectedIds([]);
+    setFiltroHoy(false);
     cargarDatos();
   }, [moduloActivo, tenant, verPapelera]);
 
@@ -43,18 +51,17 @@ const PanelCRM = () => {
   };
 
   const cargarDatos = async () => {
-    // Si estamos en el dashboard, no cargamos datos de tabla
     if (!tenant || !repository || moduloActivo === 'dashboard') return;
     
-    setDatosModulo([]); // Anti-fantasmas
+    setDatosModulo([]); 
     const esquemaActual = tenant.modules[moduloActivo];
     if (!esquemaActual) return;
+    
     const repo: any = repository;
     try {
       const data = await repo.getAll(esquemaActual.collectionName, verPapelera);
       setDatosModulo(data);
     } catch (error) {
-      console.error("🕵️‍♂️ EL VERDADERO ERROR AL CARGAR LA TABLA ES:", error);
       mostrarMensaje("Error al sincronizar datos", "error");
     }
   };
@@ -108,6 +115,73 @@ const PanelCRM = () => {
     }
   };
 
+  // ==========================================
+  // 🧠 MOTOR DE DATOS PROCESADOS (Filtros en Vivo)
+  // ==========================================
+  let datosProcesados = [...datosModulo];
+
+  // 1. Filtro Temporal (Pedidos del Día)
+  if (moduloActivo === 'pedidos' && filtroHoy) {
+    const hoyStr = new Date().toLocaleDateString('es-PE', { timeZone: 'America/Lima' });
+    datosProcesados = datosProcesados.filter(item => {
+      // Si el bot de Node.js guarda la fecha como "15/02/2026, 14:30:00"
+      return item.fecha && item.fecha.includes(hoyStr);
+    });
+  }
+
+  // 2. Buscador Inteligente
+  if (searchTerm) {
+    const term = searchTerm.toLowerCase();
+    const esquema = tenant?.modules[moduloActivo];
+    if (esquema) {
+      datosProcesados = datosProcesados.filter((item) => {
+        return esquema.fields.some((field: any) => {
+          const val = item[field.name];
+          return val !== null && val !== undefined && String(val).toLowerCase().includes(term);
+        });
+      });
+    }
+  }
+
+  // ==========================================
+  // ⚡ LÓGICA DE SELECCIÓN MÚLTIPLE
+  // ==========================================
+  const handleToggleSelect = (id: string) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
+
+  const handleToggleSelectAll = () => {
+    if (selectedIds.length === datosProcesados.length && datosProcesados.length > 0) {
+      setSelectedIds([]); // Deseleccionar todos
+    } else {
+      setSelectedIds(datosProcesados.map(item => item.id)); // Seleccionar todos los visibles
+    }
+  };
+
+  const ejecutarEliminacionMultiple = async () => {
+    if (!tenant || !repository || !moduloActivo || selectedIds.length === 0) return;
+    
+    const esDefinitivo = verPapelera;
+    if (!window.confirm(`¿Estás seguro de ${esDefinitivo ? 'destruir' : 'eliminar'} ${selectedIds.length} registros al mismo tiempo?`)) return;
+
+    const repo: any = repository;
+    const colName = tenant.modules[moduloActivo].collectionName;
+
+    try {
+      // ¡Promesas en Paralelo para máxima velocidad!
+      const promesas = selectedIds.map(id => 
+        esDefinitivo ? repo.hardDelete(colName, id) : repo.delete(colName, id)
+      );
+      await Promise.all(promesas);
+      
+      mostrarMensaje(`¡${selectedIds.length} registros procesados con éxito!`, "exito");
+      setSelectedIds([]); // Limpiamos selección
+      await cargarDatos();
+    } catch (error) {
+      mostrarMensaje("Error en la operación múltiple", "error");
+    }
+  };
+
   if (isLoading || authLoading) {
     return (
       <div className="loading-container">
@@ -148,8 +222,6 @@ const PanelCRM = () => {
 
       {/* PESTAÑAS */}
       <div className="crm-tabs">
-        {/* Pestaña Fija: Dashboard */}
-
         <button
           onClick={() => { setModuloActivo('whatsapp'); setVerPapelera(false); }}
           className="crm-tab-btn"
@@ -166,7 +238,6 @@ const PanelCRM = () => {
           📊 Panel General
         </button>
 
-        {/* Pestañas Dinámicas */}
         {Object.entries(tenant.modules)
         .sort((a: any, b: any) => (a[1].orden || 99) - (b[1].orden || 99))
         .map(([key, config]: [string, any]) => {
@@ -184,14 +255,48 @@ const PanelCRM = () => {
         })}
       </div>
 
-      {/* CONTROLES (Solo se muestran si NO estamos en el dashboard) */}
-      {moduloActivo !== 'dashboard' && (
-        <div className="crm-toolbar">
-          <div className="badge-db-connected">
-            <span className="dot-green"></span> Base de Datos Conectada
+      {/* 🚀 BARRA DE HERRAMIENTAS AVANZADA (Controles UX) */}
+      {moduloActivo !== 'dashboard' && moduloActivo !== 'whatsapp' && (
+        <div className="crm-toolbar" style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '15px', alignItems: 'center' }}>
+          
+          {/* Zona Izquierda: Buscador y Filtros */}
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flex: 1, minWidth: '300px' }}>
+            <input 
+              type="search" 
+              placeholder={`🔍 Buscar en ${tenant.modules[moduloActivo]?.title}...`}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{ padding: '8px 15px', borderRadius: '8px', border: '1px solid #d1d5db', width: '100%', maxWidth: '350px', outline: 'none' }}
+            />
+            
+            {moduloActivo === 'pedidos' && (
+              <button 
+                onClick={() => setFiltroHoy(!filtroHoy)}
+                style={{ 
+                  padding: '8px 15px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', transition: 'all 0.2s',
+                  backgroundColor: filtroHoy ? '#ecfdf5' : 'white', 
+                  color: filtroHoy ? '#059669' : '#4b5563', 
+                  border: `1px solid ${filtroHoy ? '#10b981' : '#d1d5db'}` 
+                }}
+              >
+                {filtroHoy ? '📅 Solo Hoy' : '📅 Histórico'}
+              </button>
+            )}
           </div>
 
-          <div className="toolbar-actions">
+          {/* Zona Derecha: Acciones */}
+          <div className="toolbar-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            
+            {/* Botón Mágico: Eliminar Múltiple */}
+            {selectedIds.length > 0 && (
+              <button 
+                onClick={ejecutarEliminacionMultiple}
+                style={{ backgroundColor: '#ef4444', color: 'white', padding: '8px 15px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer', animation: 'fadeIn 0.2s' }}
+              >
+                {verPapelera ? '🔥 Destruir' : '🗑️ Eliminar'} ({selectedIds.length})
+              </button>
+            )}
+
             <button 
               onClick={() => setVerPapelera(!verPapelera)}
               className="btn-trash-toggle"
@@ -213,7 +318,7 @@ const PanelCRM = () => {
         </div>
       )}
 
-      {/* ÁREA DE CONTENIDO (Aquí se invoca el Dashboard y desaparece el error de TS) */}
+      {/* ÁREA DE CONTENIDO */}
       <div 
         className="table-wrapper" 
         style={{ 
@@ -230,11 +335,19 @@ const PanelCRM = () => {
           moduloActivo && tenant.modules[moduloActivo] && (
             <DynamicTable 
               schema={tenant.modules[moduloActivo]} 
-              data={datosModulo} 
+              
+              // 🧠 Inyectamos los datos ya procesados por el buscador y el filtro de fecha
+              data={datosProcesados} 
+              
               onEdit={!verPapelera ? (reg) => { setRegistroEnEdicion(reg); setModalAbierto(true); } : undefined}
               onDelete={(id: string) => setRegistroAEliminar(id)} 
               onRestore={verPapelera ? (id: string) => handleRestaurarRegistro(id) : undefined}
               isTrashView={verPapelera}
+
+              // ⚡ Inyectamos los controles de selección múltiple
+              selectedIds={selectedIds}
+              onToggleSelect={handleToggleSelect}
+              onToggleSelectAll={handleToggleSelectAll}
             />
           )
         )}
@@ -247,7 +360,7 @@ const PanelCRM = () => {
         </Modal>
       )}
 
-      {/* MODAL ELEGANTE DE CONFIRMACIÓN DE BORRADO */}
+      {/* MODAL ELEGANTE DE CONFIRMACIÓN DE BORRADO INDIVIDUAL */}
       {registroAEliminar && (
         <Modal isOpen={!!registroAEliminar} onClose={() => setRegistroAEliminar(null)} title="⚠️ Confirmar Acción">
           <div style={{ padding: '10px 20px', textAlign: 'center', color: 'black' }}>

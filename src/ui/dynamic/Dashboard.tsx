@@ -7,50 +7,62 @@ interface DashboardProps {
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ tenant, repository }) => {
-  const [metricas, setMetricas] = useState<any>({});
+  const [metricas, setMetricas] = useState<any>({ totalIngresos: 0, pedidosPendientes: 0, conteoPorModulo: {} });
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
     const calcularMetricas = async () => {
       setCargando(true);
+      
       const nuevasMetricas: any = {
         totalIngresos: 0,
         pedidosPendientes: 0,
         conteoPorModulo: {}
       };
 
-      // Recorremos todos los módulos del JSON dinámicamente
-      for (const key of Object.keys(tenant.modules)) {
-        const collectionName = tenant.modules[key].collectionName;
-        try {
-          // Traemos todos los registros activos (sin papelera)
+      try {
+        // 🛠️ SOLUCIÓN: Ejecutamos TODAS las consultas al mismo tiempo en paralelo
+        const modulos = Object.keys(tenant.modules);
+        
+        // Creamos un array de promesas
+        const promesas = modulos.map(async (key) => {
+          const collectionName = tenant.modules[key].collectionName;
           const data = await repository.getAll(collectionName, false);
+          
+          return { key, data }; // Devolvemos la llave y sus datos
+        });
+
+        // Esperamos a que TODAS terminen simultáneamente (¡Mucho más rápido!)
+        const resultados = await Promise.all(promesas);
+
+        // Procesamos los resultados
+        resultados.forEach(({ key, data }) => {
           nuevasMetricas.conteoPorModulo[key] = data.length;
 
-          // MATEMÁTICAS ESPECÍFICAS PARA CHOCOPIURA (Pedidos)
+          // MATEMÁTICAS ESPECÍFICAS (Mantenemos tu lógica de negocio)
           if (key === 'pedidos') {
             data.forEach((pedido: any) => {
-              // Sumar dinero solo de los entregados
               if (pedido.estado === 'Entregado ✅') {
                 nuevasMetricas.totalIngresos += (Number(pedido.totalPagado) || 0);
               }
-              // Contar cuántos faltan por atender
               if (pedido.estado === 'Pendiente ⏳') {
                 nuevasMetricas.pedidosPendientes++;
               }
             });
           }
-        } catch (error) {
-          console.error(`Error cargando módulo ${key}`);
-        }
-      }
+        });
 
-      setMetricas(nuevasMetricas);
-      setCargando(false);
+        setMetricas(nuevasMetricas);
+      } catch (error) {
+        console.error("Error calculando métricas del Dashboard:", error);
+      } finally {
+        setCargando(false);
+      }
     };
 
     calcularMetricas();
   }, [tenant, repository]);
+
 
   if (cargando) {
     return <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>Calculando métricas del negocio... 📊</div>;

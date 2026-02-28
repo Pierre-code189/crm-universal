@@ -8,7 +8,8 @@ export const SuperAdminRoute = ({ children }: { children: ReactNode }) => {
   const { user, isLoading } = useAuth(); 
   const location = useLocation();
 
-  const SUPER_ADMIN_EMAIL = "giancordova9@gmail.com"; 
+  // Traemos el correo desde el entorno seguro
+  const SUPER_ADMIN_EMAIL = import.meta.env.VITE_SUPER_ADMIN_EMAIL;
 
   // 1. LA SALA DE ESPERA: Si Firebase sigue pensando, mostramos esto y detenemos el código.
   if (isLoading) {

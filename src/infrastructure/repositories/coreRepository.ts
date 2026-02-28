@@ -1,46 +1,72 @@
 // src/infrastructure/repositories/coreRepository.ts
-// IMPORTANTE: Añadimos 'deleteDoc' a la lista de importaciones
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, Firestore } from 'firebase/firestore';
+import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, Firestore, query, where } from 'firebase/firestore';
 import { db as defaultDb } from '../database/firebaseManager'; 
 
 export const createRepository = (dbInstance: Firestore) => ({
   getAll: async (collectionName: string, verEliminados: boolean = false) => {
-    const colRef = collection(dbInstance, collectionName);
-    const snapshot = await getDocs(colRef);
-    return snapshot.docs
-      .map(doc => ({ id: doc.id, ...doc.data() }))
-      .filter((item: any) => {
-        if (verEliminados) return item.isDeleted === true;
-        return item.isDeleted !== true; 
-      });
+    try {
+      const colRef = collection(dbInstance, collectionName);
+      
+      // 🛡️ SOLUCIÓN ARQUITECTÓNICA: Filtramos en el servidor, no en el cliente.
+      // Ahorra ancho de banda, memoria RAM y costos de Firebase.
+      const q = query(colRef, where("isDeleted", "==", verEliminados));
+      const snapshot = await getDocs(q);
+      
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+      console.error(`[Repository Error] Falló getAll en ${collectionName}:`, error);
+      throw error; // Lanzamos el error para que el componente UI muestre un mensaje
+    }
   },
   
   create: async (collectionName: string, data: any) => {
-    const colRef = collection(dbInstance, collectionName);
-    return await addDoc(colRef, { ...data, isDeleted: false, createdAt: new Date().toISOString() });
+    try {
+      const colRef = collection(dbInstance, collectionName);
+      return await addDoc(colRef, { ...data, isDeleted: false, createdAt: new Date().toISOString() });
+    } catch (error) {
+      console.error(`[Repository Error] Falló create en ${collectionName}:`, error);
+      throw error;
+    }
   },
 
   update: async (collectionName: string, id: string, data: any) => {
-    const docRef = doc(dbInstance, collectionName, id);
-    await updateDoc(docRef, data);
+    try {
+      const docRef = doc(dbInstance, collectionName, id);
+      await updateDoc(docRef, data);
+    } catch (error) {
+      console.error(`[Repository Error] Falló update en ${collectionName}:`, error);
+      throw error;
+    }
   },
 
-  // BORRADO LÓGICO (Mover a la papelera)
   delete: async (collectionName: string, id: string) => {
-    const docRef = doc(dbInstance, collectionName, id);
-    await updateDoc(docRef, { isDeleted: true }); 
+    try {
+      const docRef = doc(dbInstance, collectionName, id);
+      await updateDoc(docRef, { isDeleted: true }); 
+    } catch (error) {
+      console.error(`[Repository Error] Falló delete en ${collectionName}:`, error);
+      throw error;
+    }
   },
 
-  // RESTAURAR (Sacar de la papelera)
   restore: async (collectionName: string, id: string) => {
-    const docRef = doc(dbInstance, collectionName, id);
-    await updateDoc(docRef, { isDeleted: false }); 
+    try {
+      const docRef = doc(dbInstance, collectionName, id);
+      await updateDoc(docRef, { isDeleted: false }); 
+    } catch (error) {
+      console.error(`[Repository Error] Falló restore en ${collectionName}:`, error);
+      throw error;
+    }
   },
 
-  // BORRADO DEFINITIVO (Destruir desde la papelera)
   hardDelete: async (collectionName: string, id: string) => {
-    const docRef = doc(dbInstance, collectionName, id);
-    await deleteDoc(docRef);
+    try {
+      const docRef = doc(dbInstance, collectionName, id);
+      await deleteDoc(docRef);
+    } catch (error) {
+      console.error(`[Repository Error] Falló hardDelete en ${collectionName}:`, error);
+      throw error;
+    }
   }
 });
 

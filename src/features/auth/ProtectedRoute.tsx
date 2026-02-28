@@ -10,7 +10,11 @@ export const ProtectedRoute = ({ children }: { children: ReactNode }) => {
 
   // MIENTRAS ESTÉ CARGANDO, NO HACEMOS NADA (Evita el salto al login)
   if (isLoading) {
-    return null; 
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#f3f4f6' }}>
+        <p style={{ color: '#6b7280', fontWeight: 'bold' }}>Verificando credenciales...</p>
+      </div>
+    );
   }
 
   if (!user) {

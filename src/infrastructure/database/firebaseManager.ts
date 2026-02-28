@@ -33,16 +33,15 @@ export const getTenantFirebase = (tenantId: string, config: FirebaseConfig): Ten
 };
 
 // ==========================================
-// 2. LA BÓVEDA CENTRAL (Para el CRM Universal y Súper Admin)
+// 2. LA BÓVEDA CENTRAL (Seguridad con Variables de Entorno)
 // ==========================================
-// Aquí debes pegar las credenciales del proyecto de Firebase que creaste EXCLUSIVAMENTE para tu CRM
 const masterFirebaseConfig = {
-  apiKey: "AIzaSyC8DKxAXqOf9X1hMIuJFLei0lRc5OdlnnY",
-  authDomain: "crm-universal-3bbeb.firebaseapp.com",
-  projectId: "crm-universal-3bbeb",
-  storageBucket: "crm-universal-3bbeb.firebasestorage.app",
-  messagingSenderId: "831168024092",
-  appId: "1:831168024092:web:e354aae4948df4483999d9"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
 // Iniciamos el Motor Principal del Súper Administrador

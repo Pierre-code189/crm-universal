@@ -69,7 +69,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return { success: true };
     } catch (error: any) {
       console.error("Error al invitar cliente:", error);
-      return { success: false, error: error.message };
+      // Extraemos códigos de error comunes de Firebase
+      let mensaje = "Error desconocido al crear la cuenta.";
+      if (error.code === 'auth/email-already-in-use') mensaje = "Este correo ya está registrado en el sistema.";
+      if (error.code === 'auth/invalid-email') mensaje = "El formato del correo es inválido.";
+      
+      return { success: false, error: mensaje };
     }
   };
 

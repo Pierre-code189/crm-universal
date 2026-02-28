@@ -7,10 +7,13 @@ import { masterDb, getTenantFirebase } from '../../infrastructure/database/fireb
 import { createRepository } from '../../infrastructure/repositories/coreRepository';
 import type { Firestore } from 'firebase/firestore';
 
+// 🛠️ 1. Importamos la interfaz correcta en lugar de usar 'any'
+import type { Tenant } from '../types/tenant'; 
+
 type RepositoryType = ReturnType<typeof createRepository>;
 
 interface TenantContextType {
-  tenant: any | null;
+  tenant: Tenant | null; // <-- Reemplazamos any por Tenant
   isLoading: boolean;
   db: Firestore | null;
   repository: RepositoryType | null;
@@ -20,20 +23,20 @@ const TenantContext = createContext<TenantContextType>({} as TenantContextType);
 
 export const TenantProvider = ({ children }: { children: ReactNode }) => {
   const { user, isLoading: authLoading } = useAuth();
-  const [tenant, setTenant] = useState<any | null>(null);
+  
+  // 🛠️ 2. Tipamos el estado de React
+  const [tenant, setTenant] = useState<Tenant | null>(null); 
   const [db, setDb] = useState<Firestore | null>(null);
   const [repository, setRepository] = useState<RepositoryType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const cargarConfiguracionCliente = async () => {
-      // 1. Si el AuthContext está cargando, ponemos el Tenant en espera también
       if (authLoading) {
         setIsLoading(true);
         return;
       }
       
-      // 2. Si Auth terminó y NO hay usuario
       if (!user) {
         setTenant(null);
         setDb(null);
@@ -42,16 +45,14 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
-      // 3. Si eres el Admin, terminamos la carga aquí (tú no usas JSON de cliente)
-      if (user.email === "giancordova9@gmail.com") {
+      // 🛠️ 3. Usamos la variable de entorno para el Admin
+      if (user.email === import.meta.env.VITE_SUPER_ADMIN_EMAIL) {
         setIsLoading(false);
         return;
       }
 
-      // 4. BÚSQUEDA DEL ADN DEL CLIENTE
       setIsLoading(true);
       try {
-        console.log("🔍 SENSOR: Buscando configuración para:", user.email);
         const q = query(collection(masterDb, "clientes_config"), where("email", "==", user.email));
         const querySnapshot = await getDocs(q);
 
@@ -60,20 +61,16 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
           const clienteData = docSnap.data();
 
           if (clienteData.configuracionSaaS) {
-            const configJSON = clienteData.configuracionSaaS;
+            // TypeScript ahora sabe que configJSON tiene la forma de 'Tenant'
+            const configJSON = clienteData.configuracionSaaS as Tenant; 
             setTenant(configJSON); 
 
-            // Conexión dinámica
             const tenantServices = getTenantFirebase(docSnap.id, configJSON.firebaseConfig);
             setDb(tenantServices.db);
             setRepository(createRepository(tenantServices.db));
-            
-            console.log("🌟 SENSOR: ¡Mutación exitosa! Entorno cargado.");
           } else {
             console.warn("⚠️ El cliente no tiene configuración cargada.");
           }
-        } else {
-          console.error("❌ El correo no está registrado en el Búnker.");
         }
       } catch (error) {
         console.error("❌ Error de red en Firestore:", error);
@@ -83,7 +80,7 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
     };
 
     cargarConfiguracionCliente();
-  }, [user, authLoading]); // Reacciona inmediatamente al cambio de login
+  }, [user, authLoading]);
 
   return (
     <TenantContext.Provider value={{ tenant, isLoading, db, repository }}>
