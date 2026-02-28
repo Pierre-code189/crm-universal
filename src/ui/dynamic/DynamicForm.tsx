@@ -56,8 +56,11 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({ schema, initialData = 
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {schema.fields.map((field: any) => {
         
-        // 🖼️ RENDERIZADOR ESPECIAL PARA IMÁGENES
-        if (field.type === 'image' || field.name === 'imagen' || field.name === 'foto') {
+        const isImageField = field.type === 'image' || 
+                             field.name.toLowerCase().includes('imagen') || 
+                             field.name.toLowerCase().includes('foto');
+
+        if (isImageField) {
           return (
             <div key={field.name} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <label style={{ fontWeight: 'bold', color: '#374151', fontSize: '0.9rem' }}>{field.label}</label>
