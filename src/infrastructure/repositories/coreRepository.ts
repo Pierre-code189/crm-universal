@@ -1,21 +1,26 @@
 // src/infrastructure/repositories/coreRepository.ts
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, Firestore, query, where } from 'firebase/firestore';
+import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, Firestore, query, where, orderBy, limit } from 'firebase/firestore';
 import { db as defaultDb } from '../database/firebaseManager'; 
 
 export const createRepository = (dbInstance: Firestore) => ({
-  getAll: async (collectionName: string, verEliminados: boolean = false) => {
+  getAll: async (collectionName: string, verEliminados: boolean = false, limitCount: number = 50) => {
     try {
       const colRef = collection(dbInstance, collectionName);
       
-      // 🛡️ SOLUCIÓN ARQUITECTÓNICA: Filtramos en el servidor, no en el cliente.
-      // Ahorra ancho de banda, memoria RAM y costos de Firebase.
-      const q = query(colRef, where("isDeleted", "==", verEliminados));
-      const snapshot = await getDocs(q);
+      // 🛡️ Filtramos en el servidor y añadimos un límite de seguridad
+      // Usamos orderBy para que la paginación tenga sentido visual
+      const q = query(
+        colRef, 
+        where("isDeleted", "==", verEliminados),
+        orderBy("createdAt", "desc"), 
+        limit(limitCount)
+      );
       
+      const snapshot = await getDocs(q);
       return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
       console.error(`[Repository Error] Falló getAll en ${collectionName}:`, error);
-      throw error; // Lanzamos el error para que el componente UI muestre un mensaje
+      throw error;
     }
   },
   
