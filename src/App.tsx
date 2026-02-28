@@ -31,26 +31,17 @@ const PanelCRM = () => {
   
   const [mensaje, setMensaje] = useState<{texto: string, tipo: 'exito' | 'error'} | null>(null);
   const [registroAEliminar, setRegistroAEliminar] = useState<string | null>(null);
-  // 🍔 NUEVO: Estado para el menú móvil
-  const [menuMovilAbierto, setMenuMovilAbierto] = useState(false);
 
-  // 🚀 NUEVOS ESTADOS DE UX AVANZADA
+  // 🚀 ESTADOS DE UX AVANZADA
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [filtroHoy, setFiltroHoy] = useState(false);
-
-  // 🧠 NUEVO: Función que cambia el módulo y cierra el menú en celulares
-  const handleCambiarModulo = (modulo: string) => {
-    setModuloActivo(modulo);
-    setVerPapelera(false);
-    setMenuMovilAbierto(false); // Cierra la hamburguesa mágicamente
-  };
+  const [filtroFecha, setFiltroFecha] = useState<string>(''); 
+  const [menuMovilAbierto, setMenuMovilAbierto] = useState(false);
 
   useEffect(() => {
-    // 🧹 Limpiamos selecciones y búsquedas al cambiar de pantalla
     setSearchTerm('');
     setSelectedIds([]);
-    setFiltroHoy(false);
+    setFiltroFecha(''); 
     cargarDatos();
   }, [moduloActivo, tenant, verPapelera]);
 
@@ -124,21 +115,28 @@ const PanelCRM = () => {
     }
   };
 
+  const handleCambiarModulo = (modulo: string) => {
+    setModuloActivo(modulo);
+    setVerPapelera(false);
+    setMenuMovilAbierto(false); 
+  };
+
   // ==========================================
   // 🧠 MOTOR DE DATOS PROCESADOS (Filtros en Vivo)
   // ==========================================
   let datosProcesados = [...datosModulo];
 
-  // 1. Filtro Temporal (Pedidos del Día)
-  if (moduloActivo === 'pedidos' && filtroHoy) {
-    const hoyStr = new Date().toLocaleDateString('es-PE', { timeZone: 'America/Lima' });
+  if (moduloActivo === 'pedidos' && filtroFecha) {
+    const [year, month, day] = filtroFecha.split('-');
+    const fechaFormateada = `${day}/${month}/${year}`;
+    const fechaFormateadaCorta = `${parseInt(day)}/${parseInt(month)}/${year}`;
+
     datosProcesados = datosProcesados.filter(item => {
-      // Si el bot de Node.js guarda la fecha como "15/02/2026, 14:30:00"
-      return item.fecha && item.fecha.includes(hoyStr);
+      if (!item.fecha) return false;
+      return item.fecha.includes(fechaFormateada) || item.fecha.includes(fechaFormateadaCorta);
     });
   }
 
-  // 2. Buscador Inteligente
   if (searchTerm) {
     const term = searchTerm.toLowerCase();
     const esquema = tenant?.modules[moduloActivo];
@@ -161,9 +159,9 @@ const PanelCRM = () => {
 
   const handleToggleSelectAll = () => {
     if (selectedIds.length === datosProcesados.length && datosProcesados.length > 0) {
-      setSelectedIds([]); // Deseleccionar todos
+      setSelectedIds([]); 
     } else {
-      setSelectedIds(datosProcesados.map(item => item.id)); // Seleccionar todos los visibles
+      setSelectedIds(datosProcesados.map(item => item.id)); 
     }
   };
 
@@ -177,14 +175,13 @@ const PanelCRM = () => {
     const colName = tenant.modules[moduloActivo].collectionName;
 
     try {
-      // ¡Promesas en Paralelo para máxima velocidad!
       const promesas = selectedIds.map(id => 
         esDefinitivo ? repo.hardDelete(colName, id) : repo.delete(colName, id)
       );
       await Promise.all(promesas);
       
       mostrarMensaje(`¡${selectedIds.length} registros procesados con éxito!`, "exito");
-      setSelectedIds([]); // Limpiamos selección
+      setSelectedIds([]); 
       await cargarDatos();
     } catch (error) {
       mostrarMensaje("Error en la operación múltiple", "error");
@@ -203,189 +200,208 @@ const PanelCRM = () => {
   if (!tenant) return <p>No se encontró configuración.</p>;
 
   return (
-    <div className="crm-container">
+    <div className="crm-layout">
       
-      {/* HEADER */}
-      <div className="crm-header">
-        <div className="crm-brand">
+      {/* 🚀 CAPA 1: MENÚ LATERAL (SIDEBAR) */}
+      <aside className={`crm-sidebar ${menuMovilAbierto ? 'abierto' : ''}`}>
+        <div className="sidebar-brand">
           <div className="crm-avatar" style={{ backgroundColor: tenant.themeColor }}>
             {tenant.name.charAt(0)}
           </div>
           <div>
             <h1 className="crm-title">{tenant.name}</h1>
-            <span className="crm-subtitle" style={{ color: tenant.themeColor }}>Panel Administrativo</span>
+            <span className="crm-subtitle" style={{ color: tenant.themeColor }}>SaaS Engine</span>
           </div>
         </div>
-        
-        {/* 🍔 ACTUALIZADO: Controles de Usuario y Hamburguesa */}
-        <div className="crm-user-controls" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span className="crm-email desktop-only">{user?.email}</span>
-          <button onClick={logout} className="btn-logout-client">Salir</button>
+
+        <nav className="sidebar-nav">
+          <p className="nav-label">General</p>
           
           <button 
-            className="btn-hamburger" 
-            onClick={() => setMenuMovilAbierto(!menuMovilAbierto)}
+            onClick={() => handleCambiarModulo('dashboard')} 
+            className={`nav-item ${moduloActivo === 'dashboard' ? 'active' : ''}`} 
+            style={{ 
+              backgroundColor: moduloActivo === 'dashboard' ? `${tenant.themeColor}15` : 'transparent', 
+              color: moduloActivo === 'dashboard' ? tenant.themeColor : '#4b5563', 
+              borderRight: moduloActivo === 'dashboard' ? `4px solid ${tenant.themeColor}` : '4px solid transparent' 
+            }}
           >
-            {menuMovilAbierto ? '✖' : '☰'}
+            📊 Panel General
           </button>
-        </div>
-      </div>
-
-      {/* NOTIFICACIONES */}
-      {mensaje && (
-        <div className={`toast-notification ${mensaje.tipo === 'exito' ? 'toast-success' : 'toast-error'}`}>
-          {mensaje.texto}
-        </div>
-      )}
-
-      {/* PESTAÑAS (Ahora controladas por la clase menu-abierto) */}
-      <div className={`crm-tabs ${menuMovilAbierto ? 'menu-abierto' : ''}`}>
-        <button
-          onClick={() => handleCambiarModulo('whatsapp')}
-          className="crm-tab-btn"
-          style={{ backgroundColor: moduloActivo === 'whatsapp' ? tenant.themeColor : 'white', color: moduloActivo === 'whatsapp' ? 'white' : '#4b5563' }}
-        >
-          📱 WhatsApp Bot
-        </button>
-
-        <button
-          onClick={() => handleCambiarModulo('dashboard')}
-          className="crm-tab-btn"
-          style={{ backgroundColor: moduloActivo === 'dashboard' ? tenant.themeColor : 'white', color: moduloActivo === 'dashboard' ? 'white' : '#4b5563' }}
-        >
-          📊 Panel General
-        </button>
-
-        {Object.entries(tenant.modules)
-        .sort((a: any, b: any) => (a[1].orden || 99) - (b[1].orden || 99))
-        .map(([key, config]: [string, any]) => {
-          const isActive = moduloActivo === key;
-          return (
-            <button
-              key={key}
-              onClick={() => handleCambiarModulo(key)}
-              className="crm-tab-btn"
-              style={{ backgroundColor: isActive ? tenant.themeColor : 'white', color: isActive ? 'white' : '#4b5563' }}
-            >
-              {config.title}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* 🚀 BARRA DE HERRAMIENTAS AVANZADA (Controles UX) */}
-      {moduloActivo !== 'dashboard' && moduloActivo !== 'whatsapp' && (
-        <div className="crm-toolbar" style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '15px', alignItems: 'center' }}>
           
-          {/* Zona Izquierda: Buscador y Filtros */}
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flex: 1, minWidth: '300px' }}>
-            <input 
-              type="search" 
-              placeholder={`🔍 Buscar en ${tenant.modules[moduloActivo]?.title}...`}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ padding: '8px 15px', borderRadius: '8px', border: '1px solid #d1d5db', width: '100%', maxWidth: '350px', outline: 'none' }}
-            />
-            
-            {moduloActivo === 'pedidos' && (
-              <button 
-                onClick={() => setFiltroHoy(!filtroHoy)}
+          <button 
+            onClick={() => handleCambiarModulo('whatsapp')} 
+            className={`nav-item ${moduloActivo === 'whatsapp' ? 'active' : ''}`} 
+            style={{ 
+              backgroundColor: moduloActivo === 'whatsapp' ? `${tenant.themeColor}15` : 'transparent', 
+              color: moduloActivo === 'whatsapp' ? tenant.themeColor : '#4b5563', 
+              borderRight: moduloActivo === 'whatsapp' ? `4px solid ${tenant.themeColor}` : '4px solid transparent' 
+            }}
+          >
+            📱 WhatsApp Bot
+          </button>
+
+          <p className="nav-label" style={{ marginTop: '25px' }}>Módulos del Negocio</p>
+          
+          {Object.entries(tenant.modules)
+          .sort((a: any, b: any) => (a[1].orden || 99) - (b[1].orden || 99))
+          .map(([key, config]: [string, any]) => {
+            const isActive = moduloActivo === key;
+            return (
+              <button
+                key={key}
+                onClick={() => handleCambiarModulo(key)}
+                className={`nav-item ${isActive ? 'active' : ''}`}
                 style={{ 
-                  padding: '8px 15px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', transition: 'all 0.2s',
-                  backgroundColor: filtroHoy ? '#ecfdf5' : 'white', 
-                  color: filtroHoy ? '#059669' : '#4b5563', 
-                  border: `1px solid ${filtroHoy ? '#10b981' : '#d1d5db'}` 
+                  backgroundColor: isActive ? `${tenant.themeColor}15` : 'transparent', 
+                  color: isActive ? tenant.themeColor : '#4b5563', 
+                  borderRight: isActive ? `4px solid ${tenant.themeColor}` : '4px solid transparent' 
                 }}
               >
-                {filtroHoy ? '📅 Solo Hoy' : '📅 Histórico'}
+                📁 {config.title}
               </button>
-            )}
-          </div>
+            );
+          })}
+        </nav>
 
-          {/* Zona Derecha: Acciones */}
-          <div className="toolbar-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-            
-            {/* Botón Mágico: Eliminar Múltiple */}
-            {selectedIds.length > 0 && (
-              <button 
-                onClick={ejecutarEliminacionMultiple}
-                style={{ backgroundColor: '#ef4444', color: 'white', padding: '8px 15px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer', animation: 'fadeIn 0.2s' }}
-              >
-                {verPapelera ? '🔥 Destruir' : '🗑️ Eliminar'} ({selectedIds.length})
-              </button>
-            )}
-
-            <button 
-              onClick={() => setVerPapelera(!verPapelera)}
-              className="btn-trash-toggle"
-              style={{ backgroundColor: verPapelera ? '#fef2f2' : 'white', color: verPapelera ? '#ef4444' : '#374151', border: `1px solid ${verPapelera ? '#ef4444' : '#d1d5db'}` }}
-            >
-              {verPapelera ? '📂 Volver a Registros' : '🗑️ Papelera'}
-            </button>
-            
-            {!verPapelera && (
-              <button 
-                onClick={() => { setRegistroEnEdicion(null); setModalAbierto(true); }} 
-                className="btn-new-record"
-                style={{ backgroundColor: tenant.themeColor }}
-              >
-                + Nuevo Registro
-              </button>
-            )}
+        <div className="sidebar-footer">
+          <div className="user-info-mini">
+            <span className="user-email-mini" title={user?.email || ''}>{user?.email}</span>
+            <span className="user-role-mini">Administrador de Cuenta</span>
           </div>
+          <button onClick={logout} className="btn-logout-sidebar">🚪 Cerrar Sesión</button>
         </div>
-      )}
+      </aside>
 
-      {/* ÁREA DE CONTENIDO */}
-      <div 
-        className="table-wrapper" 
-        style={{ 
-          backgroundColor: moduloActivo === 'dashboard' ? 'transparent' : 'white', 
-          boxShadow: moduloActivo === 'dashboard' ? 'none' : '0 4px 6px rgba(0,0,0,0.05)', 
-          padding: moduloActivo === 'dashboard' ? '0' : '20px' 
-        }}
-      >
-        {moduloActivo === 'dashboard' ? (
-          <Dashboard tenant={tenant} repository={repository} />
-        ) : moduloActivo === 'whatsapp' ? (
-          <WhatsAppConnector tenantId={tenant.id} />
-        ) : (
-          moduloActivo && tenant.modules[moduloActivo] && (
-            <DynamicTable 
-              schema={tenant.modules[moduloActivo]} 
-              
-              // 🧠 Inyectamos los datos ya procesados por el buscador y el filtro de fecha
-              data={datosProcesados} 
-              
-              onEdit={!verPapelera ? (reg) => { setRegistroEnEdicion(reg); setModalAbierto(true); } : undefined}
-              onDelete={(id: string) => setRegistroAEliminar(id)} 
-              onRestore={verPapelera ? (id: string) => handleRestaurarRegistro(id) : undefined}
-              isTrashView={verPapelera}
+      {/* 🌑 OVERLAY MÓVIL: Oscurece el fondo cuando el menú está abierto en el celular */}
+      {menuMovilAbierto && <div className="mobile-overlay" onClick={() => setMenuMovilAbierto(false)}></div>}
 
-              // ⚡ Inyectamos los controles de selección múltiple
-              selectedIds={selectedIds}
-              onToggleSelect={handleToggleSelect}
-              onToggleSelectAll={handleToggleSelectAll}
-            />
-          )
+      {/* 🚀 CAPA 2: ÁREA DE CONTENIDO PRINCIPAL */}
+      <main className="crm-main-content">
+        
+        {/* HEADER MÓVIL (Solo visible en celulares) */}
+        <header className="mobile-header">
+           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+             <div className="crm-avatar-mini" style={{ backgroundColor: tenant.themeColor }}>{tenant.name.charAt(0)}</div>
+             <span style={{ color: '#1f2937', fontWeight: 'bold', fontSize: '1.1rem' }}>{tenant.name}</span>
+           </div>
+           <button className="btn-hamburger" onClick={() => setMenuMovilAbierto(true)}>☰</button>
+        </header>
+
+        {/* NOTIFICACIONES */}
+        {mensaje && (
+          <div className={`toast-notification ${mensaje.tipo === 'exito' ? 'toast-success' : 'toast-error'}`}>
+            {mensaje.texto}
+          </div>
         )}
-      </div>
 
-      {/* MODAL DE FORMULARIO */}
+        {/* 🚀 BARRA DE HERRAMIENTAS AVANZADA (Oculta en Dashboard y WhatsApp) */}
+        {moduloActivo !== 'dashboard' && moduloActivo !== 'whatsapp' && (
+          <div className="crm-toolbar" style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '15px', alignItems: 'center', marginBottom: '20px' }}>
+            
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flex: 1, minWidth: '300px' }}>
+              <div className="search-wrapper" style={{ position: 'relative', width: '100%', maxWidth: '350px' }}>
+                <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}>🔍</span>
+                <input 
+                  type="search" 
+                  placeholder={`Buscar en ${tenant.modules[moduloActivo]?.title}...`}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  style={{ padding: '10px 15px 10px 35px', borderRadius: '8px', border: '1px solid #d1d5db', width: '100%', outline: 'none', backgroundColor: 'white' }}
+                />
+              </div>
+              
+              {moduloActivo === 'pedidos' && (
+                <div className="date-filter-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: 'white', padding: '4px 12px', borderRadius: '8px', border: '1px solid #d1d5db' }}>
+                  <span style={{ fontSize: '1.1rem' }}>📅</span>
+                  <input 
+                    type="date" 
+                    value={filtroFecha}
+                    onChange={(e) => setFiltroFecha(e.target.value)}
+                    style={{ border: 'none', outline: 'none', color: '#4b5563', backgroundColor: 'transparent', cursor: 'pointer', fontFamily: 'inherit' }}
+                    title="Filtrar por fecha"
+                  />
+                  {filtroFecha && (
+                    <button onClick={() => setFiltroFecha('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontWeight: 'bold', padding: '0 5px' }} title="Quitar filtro">✖</button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="toolbar-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              {selectedIds.length > 0 && (
+                <button onClick={ejecutarEliminacionMultiple} style={{ backgroundColor: '#ef4444', color: 'white', padding: '10px 15px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer', animation: 'fadeIn 0.2s' }}>
+                  {verPapelera ? '🔥 Destruir' : '🗑️ Eliminar'} ({selectedIds.length})
+                </button>
+              )}
+
+              <button 
+                onClick={() => setVerPapelera(!verPapelera)}
+                className="btn-trash-toggle"
+                style={{ backgroundColor: verPapelera ? '#fef2f2' : 'white', color: verPapelera ? '#ef4444' : '#374151', border: `1px solid ${verPapelera ? '#ef4444' : '#d1d5db'}`, padding: '10px 15px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
+              >
+                {verPapelera ? '📂 Volver a Registros' : '🗑️ Papelera'}
+              </button>
+              
+              {!verPapelera && (
+                <button 
+                  onClick={() => { setRegistroEnEdicion(null); setModalAbierto(true); }} 
+                  className="btn-new-record"
+                  style={{ backgroundColor: tenant.themeColor, color: 'white', padding: '10px 15px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                  + Nuevo Registro
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* TABLA O COMPONENTES */}
+        <div 
+          className="content-wrapper" 
+          style={{ 
+            backgroundColor: moduloActivo === 'dashboard' ? 'transparent' : 'white', 
+            boxShadow: moduloActivo === 'dashboard' ? 'none' : '0 4px 6px rgba(0,0,0,0.05)', 
+            padding: moduloActivo === 'dashboard' ? '0' : '20px',
+            borderRadius: '12px',
+            border: moduloActivo === 'dashboard' ? 'none' : '1px solid #f3f4f6'
+          }}
+        >
+          {moduloActivo === 'dashboard' ? (
+            <Dashboard tenant={tenant} repository={repository} />
+          ) : moduloActivo === 'whatsapp' ? (
+            <WhatsAppConnector tenantId={tenant.id} />
+          ) : (
+            moduloActivo && tenant.modules[moduloActivo] && (
+              <DynamicTable 
+                schema={tenant.modules[moduloActivo]} 
+                data={datosProcesados} 
+                onEdit={!verPapelera ? (reg) => { setRegistroEnEdicion(reg); setModalAbierto(true); } : undefined}
+                onDelete={(id: string) => setRegistroAEliminar(id)} 
+                onRestore={verPapelera ? (id: string) => handleRestaurarRegistro(id) : undefined}
+                isTrashView={verPapelera}
+                selectedIds={selectedIds}
+                onToggleSelect={handleToggleSelect}
+                onToggleSelectAll={handleToggleSelectAll}
+              />
+            )
+          )}
+        </div>
+
+      </main>
+
+      {/* MODALES */}
       {modalAbierto && (
         <Modal isOpen={modalAbierto} onClose={() => setModalAbierto(false)} title={registroEnEdicion ? 'Editar Registro' : 'Nuevo Registro'}>
           <DynamicForm schema={tenant.modules[moduloActivo]} initialData={registroEnEdicion || {}} onSubmit={handleGuardarRegistro} onCancel={() => setModalAbierto(false)} />
         </Modal>
       )}
 
-      {/* MODAL ELEGANTE DE CONFIRMACIÓN DE BORRADO INDIVIDUAL */}
       {registroAEliminar && (
         <Modal isOpen={!!registroAEliminar} onClose={() => setRegistroAEliminar(null)} title="⚠️ Confirmar Acción">
           <div style={{ padding: '10px 20px', textAlign: 'center', color: 'black' }}>
             <p style={{ fontSize: '1.1rem', marginBottom: '25px', fontWeight: '500' }}>
-              {verPapelera 
-                ? "Este registro será destruido de forma permanente. Esta acción no se puede deshacer. ¿Deseas continuar?" 
-                : "¿Estás seguro de que deseas mover este registro a la papelera?"}
+              {verPapelera ? "Este registro será destruido de forma permanente. Esta acción no se puede deshacer. ¿Deseas continuar?" : "¿Estás seguro de que deseas mover este registro a la papelera?"}
             </p>
             <div style={{ display: 'flex', justifyContent: 'center', gap: '15px' }}>
               <button onClick={() => setRegistroAEliminar(null)} style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #d1d5db', background: 'white', color: '#374151', cursor: 'pointer', fontWeight: 'bold' }}>Cancelar</button>

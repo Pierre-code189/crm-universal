@@ -1,204 +1,244 @@
-/* src/App.css */
+/* =========================================
+   SaaS ENGINE: HOJA DE ESTILOS PRINCIPAL
+   ========================================= */
 
-/* --- PANTALLA DE CARGA --- */
-.loading-container {
-  min-height: 100vh;
+/* -----------------------------------------
+   1. RESET Y VARIABLES GLOBALES
+----------------------------------------- */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #f9fafb; /* Fondo gris súper claro premium */
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* -----------------------------------------
+   2. ESTRUCTURA PRINCIPAL (LAYOUT)
+----------------------------------------- */
+.crm-layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+/* -----------------------------------------
+   3. BARRA LATERAL (SIDEBAR)
+----------------------------------------- */
+.crm-sidebar {
+  width: 260px;
+  background-color: white;
+  border-right: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background-color: #f9fafb;
-  font-family: sans-serif;
+  flex-shrink: 0;
+  z-index: 100;
+  transition: transform 0.3s ease-in-out;
 }
 
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #3b82f6;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* --- CONTENEDOR PRINCIPAL DEL CRM --- */
-.crm-container {
-  padding: clamp(10px, 5vw, 40px);
-  background-color: #f9fafb;
-  min-height: 100vh;
-  font-family: sans-serif;
-  box-sizing: border-box;
-}
-
-/* --- CABECERA PREMIUM (Mundo Cliente) --- */
-.crm-header {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  background-color: white;
-  padding: 15px 25px;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-  margin-bottom: 30px;
-  border: 1px solid #f3f4f6;
-  gap: 15px;
-}
-
-.crm-brand {
+.sidebar-brand {
+  padding: 20px;
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 12px;
+  border-bottom: 1px solid #f3f4f6;
 }
 
 .crm-avatar {
-  width: 45px;
-  height: 45px;
-  border-radius: 10px;
-  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
   display: flex;
-  justify-content: center;
   align-items: center;
-  font-size: 1.5rem;
+  justify-content: center;
+  color: white;
   font-weight: bold;
+  font-size: 1.2rem;
 }
 
-.crm-title {
-  margin: 0;
-  font-size: clamp(1.2rem, 3vw, 1.4rem);
-  color: #1f2937;
+.crm-title { margin: 0; font-size: 1.2rem; color: #111827; }
+.crm-subtitle { font-size: 0.75rem; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase; }
+
+/* Navegación del Sidebar */
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 0;
 }
 
-.crm-subtitle {
-  font-size: 0.8rem;
+.nav-label {
+  margin: 0 0 10px 20px;
+  font-size: 0.75rem;
+  color: #9ca3af;
   font-weight: bold;
   text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
-.crm-user-controls {
+.nav-item {
+  width: 100%;
+  text-align: left;
+  padding: 12px 20px;
+  background: none;
+  border: none;
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
   display: flex;
   align-items: center;
-  gap: 20px;
-}
-
-.crm-email {
-  font-size: 0.8rem;
-  color: #6b7280;
-}
-
-.btn-logout-client {
-  padding: 8px 16px;
-  background-color: #fff1f2;
-  color: #e11d48;
-  border: 1px solid #fecdd3;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: all 0.2s;
-}
-
-.btn-logout-client:hover {
-  background-color: #ffe4e6;
-}
-
-/* --- NAVEGACIÓN (Pestañas) --- */
-.crm-tabs {
-  display: flex;
-  flex-wrap: wrap;
   gap: 10px;
-  margin-bottom: 25px;
+}
+.nav-item:hover { background-color: #f9fafb !important; }
+
+/* Footer del Sidebar */
+.sidebar-footer {
+  padding: 20px;
+  border-top: 1px solid #f3f4f6;
+  background-color: #f9fafb;
 }
 
-.crm-tab-btn {
-  padding: 12px 20px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
+.user-info-mini {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+  overflow: hidden;
+}
+.user-email-mini { font-size: 0.9rem; color: #374151; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-role-mini { font-size: 0.75rem; color: #6b7280; }
+
+.btn-logout-sidebar {
+  width: 100%;
+  padding: 10px;
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  color: #ef4444;
+  border-radius: 6px;
   font-weight: bold;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  cursor: pointer;
   transition: all 0.2s;
 }
+.btn-logout-sidebar:hover { background-color: #fef2f2; border-color: #fca5a5; }
 
-/* --- BARRA DE ACCIONES (Toolbar) --- */
-.crm-toolbar {
+/* -----------------------------------------
+   4. CONTENIDO PRINCIPAL Y BARRA DE HERRAMIENTAS
+----------------------------------------- */
+.crm-main-content {
+  flex: 1;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 30px;
+  box-sizing: border-box;
+}
+
+.mobile-header { display: none; }
+.mobile-overlay { display: none; }
+
+.search-wrapper input:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* -----------------------------------------
+   5. DASHBOARD ENTERPRISE (GRÁFICOS Y KPIS)
+----------------------------------------- */
+.dashboard-layout {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.quick-actions {
+  display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  flex-wrap: wrap;
   gap: 15px;
 }
 
-.badge-db-connected {
-  padding: 8px 15px;
-  background-color: #d1fae5;
-  color: #065f46;
-  border-radius: 20px;
+.btn-quick-action {
+  padding: 8px 16px;
+  border-radius: 6px;
   font-weight: bold;
-  font-size: 0.85rem;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.dot-green {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  background-color: #10b981;
-  border-radius: 50%;
-}
-
-.toolbar-actions {
-  display: flex;
-  gap: 10px;
-  flex-grow: 1;
-  justify-content: flex-end;
-}
-
-.btn-trash-toggle {
-  padding: 10px 15px;
-  border-radius: 8px;
   cursor: pointer;
-  font-weight: bold;
   transition: all 0.2s;
 }
+.btn-quick-action.outline {
+  background-color: transparent;
+  border: 1px solid #d1d5db;
+  color: #4b5563;
+}
+.btn-quick-action.outline:hover { background-color: #f3f4f6; }
 
-.btn-new-record {
-  padding: 10px 20px;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: opacity 0.2s;
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
 }
 
-.btn-new-record:hover {
-  opacity: 0.9;
-}
-
-/* --- CONTENEDOR DE LA TABLA DINÁMICA --- */
-.table-wrapper {
-  background-color: white;
+.kpi-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 25px;
   border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-  overflow-x: auto;
+  background-color: white;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f3f4f6;
 }
 
-/* Añadir al final de src/App.css */
+.kpi-icon { font-size: 2rem; padding: 15px; border-radius: 12px; }
+.kpi-card.success .kpi-icon { background-color: #d1fae5; }
+.kpi-card.warning .kpi-icon { background-color: #fef3c7; }
+.kpi-card.neutral .kpi-icon { background-color: #f3f4f6; }
+
+.kpi-label { margin: 0; font-size: 0.9rem; color: #6b7280; font-weight: 500; }
+.kpi-value { margin: 5px 0 0 0; font-size: 1.8rem; color: #111827; }
+
+.dashboard-main-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+
+.chart-container, .activity-container {
+  background-color: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f3f4f6;
+}
+
+.section-title { margin: 0 0 20px 0; font-size: 1.1rem; color: #374151; }
+
+.empty-chart {
+  height: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f9fafb;
+  border-radius: 8px;
+  color: #9ca3af;
+  font-size: 0.9rem;
+}
+
+.activity-list { display: flex; flex-direction: column; gap: 15px; }
+.activity-item { display: flex; align-items: flex-start; gap: 12px; padding-bottom: 15px; border-bottom: 1px solid #f3f4f6; }
+.activity-item:last-child { border-bottom: none; padding-bottom: 0; }
+.activity-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; }
+.activity-text { margin: 0; font-size: 0.95rem; color: #374151; }
+.activity-id { font-size: 0.75rem; color: #9ca3af; }
+
+/* -----------------------------------------
+   6. NOTIFICACIONES Y CARGADORES (UX)
+----------------------------------------- */
 .toast-notification {
   position: fixed;
   top: 20px;
   right: 20px;
   padding: 15px 25px;
   border-radius: 8px;
-  z-index: 1000;
+  z-index: 9999;
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
   color: white;
   font-weight: bold;
@@ -212,39 +252,76 @@
   to { transform: translateX(0); opacity: 1; }
 }
 
-/* =========================================
-   📱 OPTIMIZACIÓN MÓVIL (UX PREMIUM)
-   ========================================= */
-
-/* 1. Pestañas Deslizables (Sin Scrollbar visible) */
-.crm-tabs {
+.loading-container {
   display: flex;
-  overflow-x: auto;
-  gap: 10px;
-  padding-bottom: 10px;
-  /* Ocultar barra en diferentes navegadores */
-  -ms-overflow-style: none;  
-  scrollbar-width: none;  
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #f3f4f6;
 }
-.crm-tabs::-webkit-scrollbar {
-  display: none;
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #d1d5db;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
-.crm-tab-btn {
-  white-space: nowrap; /* Evita que el texto del botón se rompa en dos líneas */
-  flex-shrink: 0;      /* Evita que los botones se aplasten */
-}
+@keyframes spin { to { transform: rotate(360deg); } }
 
-/* 2. Transformación de Tablas a Tarjetas (Card View) */
-@media screen and (max-width: 768px) {
-  .responsive-table thead {
-    display: none; /* Ocultamos la cabecera en celulares */
+/* -----------------------------------------
+   7. DISEÑO RESPONSIVO MÓVIL (MOBILE FIRST)
+----------------------------------------- */
+
+/* Transformación general para Tablets (Sidebar Off-Canvas) */
+@media screen and (max-width: 1024px) {
+  .crm-main-content { padding: 20px; }
+  .dashboard-main-grid { grid-template-columns: 1fr; }
+  
+  .crm-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100%;
+    transform: translateX(-100%);
+    box-shadow: 10px 0 15px -3px rgba(0, 0, 0, 0.1);
   }
   
-  .responsive-table, 
-  .responsive-table tbody, 
-  .responsive-table tr, 
-  .responsive-table td, 
-  .responsive-table th {
+  .crm-sidebar.abierto { transform: translateX(0); }
+
+  .mobile-overlay {
+    display: block;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 90;
+    animation: fadeIn 0.3s;
+  }
+
+  .mobile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+  }
+  
+  .crm-avatar-mini {
+    width: 35px; height: 35px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;
+  }
+
+  .btn-hamburger { background: none; border: none; font-size: 1.5rem; color: #374151; cursor: pointer; }
+}
+
+/* Transformación de Tablas a Tarjetas (Smart Card View) */
+@media screen and (max-width: 768px) {
+  .responsive-table thead { display: none; }
+  
+  .responsive-table, .responsive-table tbody, .responsive-table tr, .responsive-table td, .responsive-table th {
     display: block;
     width: 100%;
     box-sizing: border-box;
@@ -267,7 +344,6 @@
     padding: 12px 15px !important;
   }
   
-  /* Inyectamos el título de la columna desde el data-label de React */
   .responsive-table td::before {
     content: attr(data-label);
     font-weight: 600;
@@ -277,218 +353,16 @@
     padding-right: 10px;
   }
   
-  .responsive-table td:last-child {
-    border-bottom: none !important;
-    justify-content: flex-end;
-    gap: 10px;
-  }
-
-  /* El checkbox maestro en móvil requiere un trato especial */
-  .responsive-table td input[type="checkbox"] {
-    margin-left: auto;
-  }
+  .responsive-table td:last-child { border-bottom: none !important; justify-content: flex-end; gap: 10px; }
+  .responsive-table td input[type="checkbox"] { margin-left: auto; }
 }
 
-/* Ajustes menores para la barra de herramientas en móvil */
+/* Ajustes finos para celulares pequeños */
 @media screen and (max-width: 600px) {
-  .crm-toolbar {
-    flex-direction: column;
-    align-items: stretch !important;
-  }
-  .crm-toolbar input[type="search"] {
-    max-width: 100% !important;
-  }
-  .toolbar-actions {
-    justify-content: space-between;
-    width: 100%;
-  }
+  .crm-toolbar { flex-direction: column; align-items: stretch !important; }
+  .crm-toolbar .search-wrapper, .crm-toolbar .date-filter-wrapper { max-width: 100% !important; width: 100%; }
+  .toolbar-actions { justify-content: space-between; width: 100%; flex-wrap: wrap; }
+  .btn-new-record, .btn-trash-toggle { flex: 1; text-align: center; }
 }
 
-/* =========================================
-   🍔 MENÚ HAMBURGUESA Y HEADER MÓVIL
-   ========================================= */
-
-/* Por defecto (Computadoras), la hamburguesa NO existe */
-.btn-hamburger {
-  display: none;
-  background: none;
-  border: none;
-  font-size: 1.6rem;
-  color: #374151;
-  cursor: pointer;
-  padding: 0 5px;
-  transition: transform 0.2s;
-}
-
-/* Solo afecta a pantallas pequeñas (Celulares/Tablets) */
-@media screen and (max-width: 768px) {
-  .btn-hamburger {
-    display: block; /* Aparece la hamburguesa */
-  }
-
-  .desktop-only {
-    display: none !important; /* Escondemos el correo para ahorrar espacio */
-  }
-
-  /* Transformamos el contenedor de botones en un Dropdown */
-  .crm-tabs {
-    display: none; /* Oculto por defecto */
-    flex-direction: column;
-    background-color: white;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
-    gap: 8px;
-  }
-
-  /* Cuando React activa la clase, el menú cae con estilo */
-  .crm-tabs.menu-abierto {
-    display: flex;
-    animation: slideDown 0.3s ease-out forwards;
-  }
-
-  /* Los botones se estiran de lado a lado */
-  .crm-tab-btn {
-    width: 100%;
-    text-align: left;
-    padding: 12px 15px;
-    border-radius: 6px;
-  }
-
-  @keyframes slideDown {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-}
-
-/* =========================================
-   📊 NIVEL 1: DASHBOARD ENTERPRISE
-   ========================================= */
-
-.dashboard-layout {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-}
-
-.quick-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 15px;
-}
-
-.btn-quick-action {
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-quick-action.outline {
-  background-color: transparent;
-  border: 1px solid #d1d5db;
-  color: #4b5563;
-}
-.btn-quick-action.outline:hover {
-  background-color: #f3f4f6;
-}
-
-/* Grilla de KPIs */
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 20px;
-}
-
-.kpi-card {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  padding: 25px;
-  border-radius: 12px;
-  background-color: white;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  border: 1px solid #f3f4f6;
-}
-
-.kpi-icon {
-  font-size: 2rem;
-  padding: 15px;
-  border-radius: 12px;
-}
-
-.kpi-card.success .kpi-icon { background-color: #d1fae5; }
-.kpi-card.warning .kpi-icon { background-color: #fef3c7; }
-.kpi-card.neutral .kpi-icon { background-color: #f3f4f6; }
-
-.kpi-label { margin: 0; font-size: 0.9rem; color: #6b7280; font-weight: 500; }
-.kpi-value { margin: 5px 0 0 0; font-size: 1.8rem; color: #111827; }
-
-/* Grilla Principal (Gráfico + Actividad) */
-.dashboard-main-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr; /* El gráfico toma el doble de espacio */
-  gap: 20px;
-}
-
-.chart-container, .activity-container {
-  background-color: white;
-  padding: 25px;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-  border: 1px solid #f3f4f6;
-}
-
-.section-title {
-  margin: 0 0 20px 0;
-  font-size: 1.1rem;
-  color: #374151;
-}
-
-.empty-chart {
-  height: 250px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #f9fafb;
-  border-radius: 8px;
-  color: #9ca3af;
-  font-size: 0.9rem;
-}
-
-/* Feed de Actividad */
-.activity-list {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.activity-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #f3f4f6;
-}
-.activity-item:last-child { border-bottom: none; padding-bottom: 0; }
-
-.activity-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  margin-top: 5px;
-}
-
-.activity-text { margin: 0; font-size: 0.95rem; color: #374151; }
-.activity-id { font-size: 0.75rem; color: #9ca3af; }
-
-/* Responsive para el Dashboard */
-@media screen and (max-width: 1024px) {
-  .dashboard-main-grid {
-    grid-template-columns: 1fr; /* En tablets y celulares, todo se apila */
-  }
-}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
