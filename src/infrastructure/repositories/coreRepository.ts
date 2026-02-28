@@ -1,18 +1,17 @@
 // src/infrastructure/repositories/coreRepository.ts
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, Firestore, query, where, orderBy, limit } from 'firebase/firestore';
+import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, Firestore, query, where, limit } from 'firebase/firestore';
 import { db as defaultDb } from '../database/firebaseManager'; 
 
 export const createRepository = (dbInstance: Firestore) => ({
-  getAll: async (collectionName: string, verEliminados: boolean = false, limitCount: number = 50) => {
+  getAll: async (collectionName: string, verEliminados: boolean = false, limitCount: number = 10) => {
     try {
       const colRef = collection(dbInstance, collectionName);
       
-      // 🛡️ Filtramos en el servidor y añadimos un límite de seguridad
-      // Usamos orderBy para que la paginación tenga sentido visual
+      // 🛡️ Filtramos en el servidor y añadimos el límite de paginación
+      // (Retiramos el orderBy temporalmente para evitar el error de Índices Compuestos de Firebase)
       const q = query(
         colRef, 
         where("isDeleted", "==", verEliminados),
-        orderBy("createdAt", "desc"), 
         limit(limitCount)
       );
       
