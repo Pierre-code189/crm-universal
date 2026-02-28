@@ -38,7 +38,7 @@ export const DynamicTable: React.FC<DynamicTableProps> = ({
   const todosSeleccionados = datosFiltrados.length > 0 && selectedIds.length === datosFiltrados.length;
 
   return (
-    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+    <table className="responsive-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
       <thead>
         <tr style={{ backgroundColor: '#f3f4f6', borderBottom: '2px solid #e5e7eb' }}>
           
@@ -95,7 +95,7 @@ export const DynamicTable: React.FC<DynamicTableProps> = ({
               )}
 
               {schema.fields.map((field: any) => (
-                <td key={field.name} style={{ padding: '12px 15px', fontSize: '0.9rem', color: '#1f2937' }}>
+                <td key={field.name} data-label={field.label} style={{ padding: '12px 15px', fontSize: '0.9rem', color: '#1f2937' }}>
                   
                   {/* Booleanos interceptados */}
                   {field.type === 'checkbox' ? (

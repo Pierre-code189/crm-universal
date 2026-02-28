@@ -39,13 +39,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant, repository }) => {
         resultados.forEach(({ key, data }) => {
           nuevasMetricas.conteoPorModulo[key] = data.length;
 
-          // MATEMÁTICAS ESPECÍFICAS (Mantenemos tu lógica de negocio)
+          // MATEMÁTICAS ESPECÍFICAS PARA CHOCOPIURA (Pedidos)
           if (key === 'pedidos') {
             data.forEach((pedido: any) => {
-              if (pedido.estado === 'Entregado ✅') {
+              // Convertimos a texto seguro
+              const estadoStr = String(pedido.estado || ''); 
+              
+              // 🛠️ Ahora buscamos la palabra clave, sin importar los emojis
+              if (estadoStr.includes('Entregado')) {
                 nuevasMetricas.totalIngresos += (Number(pedido.totalPagado) || 0);
               }
-              if (pedido.estado === 'Pendiente ⏳') {
+              if (estadoStr.includes('Pendiente')) {
                 nuevasMetricas.pedidosPendientes++;
               }
             });

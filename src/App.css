@@ -211,3 +211,95 @@
   from { transform: translateX(100%); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
 }
+
+/* =========================================
+   📱 OPTIMIZACIÓN MÓVIL (UX PREMIUM)
+   ========================================= */
+
+/* 1. Pestañas Deslizables (Sin Scrollbar visible) */
+.crm-tabs {
+  display: flex;
+  overflow-x: auto;
+  gap: 10px;
+  padding-bottom: 10px;
+  /* Ocultar barra en diferentes navegadores */
+  -ms-overflow-style: none;  
+  scrollbar-width: none;  
+}
+.crm-tabs::-webkit-scrollbar {
+  display: none;
+}
+.crm-tab-btn {
+  white-space: nowrap; /* Evita que el texto del botón se rompa en dos líneas */
+  flex-shrink: 0;      /* Evita que los botones se aplasten */
+}
+
+/* 2. Transformación de Tablas a Tarjetas (Card View) */
+@media screen and (max-width: 768px) {
+  .responsive-table thead {
+    display: none; /* Ocultamos la cabecera en celulares */
+  }
+  
+  .responsive-table, 
+  .responsive-table tbody, 
+  .responsive-table tr, 
+  .responsive-table td, 
+  .responsive-table th {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .responsive-table tr {
+    margin-bottom: 15px;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 8px;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  }
+  
+  .responsive-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: right;
+    border-bottom: 1px solid #f3f4f6 !important;
+    padding: 12px 15px !important;
+  }
+  
+  /* Inyectamos el título de la columna desde el data-label de React */
+  .responsive-table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #6b7280;
+    text-align: left;
+    flex: 1;
+    padding-right: 10px;
+  }
+  
+  .responsive-table td:last-child {
+    border-bottom: none !important;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  /* El checkbox maestro en móvil requiere un trato especial */
+  .responsive-table td input[type="checkbox"] {
+    margin-left: auto;
+  }
+}
+
+/* Ajustes menores para la barra de herramientas en móvil */
+@media screen and (max-width: 600px) {
+  .crm-toolbar {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+  .crm-toolbar input[type="search"] {
+    max-width: 100% !important;
+  }
+  .toolbar-actions {
+    justify-content: space-between;
+    width: 100%;
+  }
+}
