@@ -361,3 +361,134 @@
     to { opacity: 1; transform: translateY(0); }
   }
 }
+
+/* =========================================
+   📊 NIVEL 1: DASHBOARD ENTERPRISE
+   ========================================= */
+
+.dashboard-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.quick-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.btn-quick-action {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-quick-action.outline {
+  background-color: transparent;
+  border: 1px solid #d1d5db;
+  color: #4b5563;
+}
+.btn-quick-action.outline:hover {
+  background-color: #f3f4f6;
+}
+
+/* Grilla de KPIs */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.kpi-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 25px;
+  border-radius: 12px;
+  background-color: white;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  border: 1px solid #f3f4f6;
+}
+
+.kpi-icon {
+  font-size: 2rem;
+  padding: 15px;
+  border-radius: 12px;
+}
+
+.kpi-card.success .kpi-icon { background-color: #d1fae5; }
+.kpi-card.warning .kpi-icon { background-color: #fef3c7; }
+.kpi-card.neutral .kpi-icon { background-color: #f3f4f6; }
+
+.kpi-label { margin: 0; font-size: 0.9rem; color: #6b7280; font-weight: 500; }
+.kpi-value { margin: 5px 0 0 0; font-size: 1.8rem; color: #111827; }
+
+/* Grilla Principal (Gráfico + Actividad) */
+.dashboard-main-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr; /* El gráfico toma el doble de espacio */
+  gap: 20px;
+}
+
+.chart-container, .activity-container {
+  background-color: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f3f4f6;
+}
+
+.section-title {
+  margin: 0 0 20px 0;
+  font-size: 1.1rem;
+  color: #374151;
+}
+
+.empty-chart {
+  height: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f9fafb;
+  border-radius: 8px;
+  color: #9ca3af;
+  font-size: 0.9rem;
+}
+
+/* Feed de Actividad */
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #f3f4f6;
+}
+.activity-item:last-child { border-bottom: none; padding-bottom: 0; }
+
+.activity-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 5px;
+}
+
+.activity-text { margin: 0; font-size: 0.95rem; color: #374151; }
+.activity-id { font-size: 0.75rem; color: #9ca3af; }
+
+/* Responsive para el Dashboard */
+@media screen and (max-width: 1024px) {
+  .dashboard-main-grid {
+    grid-template-columns: 1fr; /* En tablets y celulares, todo se apila */
+  }
+}
