@@ -88,6 +88,27 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({ schema, initialData = 
           );
         }
 
+        // 📋 RENDERIZADOR PARA LISTAS DESPLEGABLES (SELECT)
+        if (field.type === 'select') {
+          return (
+            <div key={field.name} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ fontWeight: 'bold', color: '#374151', fontSize: '0.9rem' }}>{field.label}</label>
+              <select
+                name={field.name}
+                value={formData[field.name] || ''}
+                onChange={handleChange}
+                required={field.required}
+                style={{ padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none', fontSize: '1rem', backgroundColor: 'white', cursor: 'pointer' }}
+              >
+                <option value="" disabled>Selecciona una opción...</option>
+                {field.options?.map((opcion: string) => (
+                  <option key={opcion} value={opcion}>{opcion}</option>
+                ))}
+              </select>
+            </div>
+          );
+        }
+
         // 📝 RENDERIZADOR PARA TEXTOS Y NÚMEROS NORMALES
         return (
           <div key={field.name} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
