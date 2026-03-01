@@ -1,6 +1,6 @@
-// src/ui/dynamic/Dashboard.tsx
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
+import { useDashboardMetrics } from '../../hooks/useDashboardMetrics';
 
 interface DashboardProps {
   tenant: any;
@@ -8,80 +8,28 @@ interface DashboardProps {
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ tenant, repository }) => {
-  const [metricas, setMetricas] = useState<any>({ totalIngresos: 0, pedidosPendientes: 0, conteoPorModulo: {} });
-  const [datosGrafico, setDatosGrafico] = useState<any[]>([]);
-  const [actividadReciente, setActividadReciente] = useState<any[]>([]);
-  const [cargando, setCargando] = useState(true);
+  // 🧠 Llamamos a nuestro hook (El Cerebro)
+  const { metricas, datosGrafico, actividadReciente, pedidosRaw, cargando } = useDashboardMetrics(tenant, repository);
 
-  useEffect(() => {
-    const calcularMetricas = async () => {
-      setCargando(true);
-      const nuevasMetricas: any = { totalIngresos: 0, pedidosPendientes: 0, conteoPorModulo: {} };
-      const ventasPorDia: Record<string, number> = {};
-      let todosLosRegistros: any[] = [];
-
-      try {
-        const modulos = Object.keys(tenant.modules);
-        const promesas = modulos.map(async (key) => {
-          const collectionName = tenant.modules[key].collectionName;
-          const data = await repository.getAll(collectionName, false);
-          return { key, data };
-        });
-
-        const resultados = await Promise.all(promesas);
-
-        resultados.forEach(({ key, data }) => {
-          nuevasMetricas.conteoPorModulo[key] = data.length;
-
-          // Extraemos los últimos registros para el feed de actividad
-          const registrosConModulo = data.map((d: any) => ({ ...d, _modulo: tenant.modules[key].title }));
-          todosLosRegistros = [...todosLosRegistros, ...registrosConModulo];
-
-          if (key === 'pedidos') {
-            data.forEach((pedido: any) => {
-              const estadoStr = String(pedido.estado || '');
-              const monto = Number(pedido.totalPagado) || 0;
-
-              if (estadoStr.includes('Entregado')) {
-                nuevasMetricas.totalIngresos += monto;
-                
-                // 📊 LÓGICA PARA EL GRÁFICO: Agrupar por fecha
-                const fechaCorta = pedido.fecha ? pedido.fecha.split(',')[0].trim() : 'Sin Fecha';
-                if (ventasPorDia[fechaCorta]) {
-                  ventasPorDia[fechaCorta] += monto;
-                } else {
-                  ventasPorDia[fechaCorta] = monto;
-                }
-              }
-
-              if (estadoStr.includes('Pendiente')) {
-                nuevasMetricas.pedidosPendientes++;
-              }
-            });
-          }
-        });
-
-        // Formatear datos para Recharts
-        const chartData = Object.keys(ventasPorDia).map(fecha => ({
-          fecha: fecha,
-          ingresos: ventasPorDia[fecha]
-        })).slice(-7); // Tomamos solo los últimos 7 días con ventas
-
-        // Ordenar actividad reciente (simulada ordenando al revés por ahora)
-        const ultimos5 = todosLosRegistros.reverse().slice(0, 5);
-
-        setMetricas(nuevasMetricas);
-        setDatosGrafico(chartData);
-        setActividadReciente(ultimos5);
-      } catch (error) {
-        console.error("Error calculando métricas:", error);
-      } finally {
-        setCargando(false);
-      }
-    };
-
-    calcularMetricas();
-  }, [tenant, repository]);
+  // 📥 FUNCIÓN PARA EXPORTAR EL REPORTE GERENCIAL (CORREGIDO)
+  const descargarReporteGerencial = () => {
+    if (pedidosRaw.length === 0) return alert("No hay pedidos para exportar aún.");
+    
+    import('../../core/utils/ExportService').then(mod => {
+      const esquemaGerencial = {
+        title: "Reporte_Gerencial_Dashboard",
+        fields: [
+          { name: "id", label: "ID Pedido" },
+          { name: "fecha", label: "Fecha de Registro" },
+          { name: "cliente", label: "Nombre del Cliente" },
+          { name: "zona", label: "Zona de Envío" },
+          { name: "totalPagado", label: "Total Ingresado (S/)" },
+          { name: "estado", label: "Estado Actual" }
+        ]
+      };
+      mod.exportToExcel(pedidosRaw, esquemaGerencial);
+    });
+  };
 
   if (cargando) {
     return (
@@ -99,7 +47,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant, repository }) => {
       <div className="quick-actions">
         <h2 style={{ fontSize: '1.2rem', margin: 0, color: '#1f2937' }}>Visión General</h2>
         <div style={{ display: 'flex', gap: '10px' }}>
-          <button className="btn-quick-action outline">📄 Descargar Reporte</button>
+          <button onClick={descargarReporteGerencial} className="btn-quick-action outline" style={{ cursor: 'pointer' }}>
+            📄 Descargar Reporte
+          </button>
         </div>
       </div>
 
@@ -135,8 +85,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant, repository }) => {
         <div className="chart-container">
           <h3 className="section-title">Tendencia de Ingresos (Últimas Ventas)</h3>
           {datosGrafico.length > 0 ? (
-            <div style={{ width: '100%', height: 300 }}>
-              <ResponsiveContainer>
+            // 🛠️ FIX DE RECHARTS: Contenedor con minHeight estricto
+            <div style={{ width: '100%', height: '300px', minHeight: '300px' }}>
+              <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={datosGrafico} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorIngresos" x1="0" y1="0" x2="0" y2="1">
@@ -180,7 +131,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant, repository }) => {
         </div>
 
       </div>
-
     </div>
   );
 };
